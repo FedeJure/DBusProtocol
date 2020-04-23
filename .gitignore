@@ -1,0 +1,4 @@
+*.o
+cpplint.py
+client
+server

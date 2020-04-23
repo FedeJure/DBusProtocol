@@ -1,10 +1,11 @@
 // Copyright [2019] <Federico Jure>
-#include "./main.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "./client.h"
 #include "./signal.h"
+#include "./client_main.h"
 
 #define MAX_ARGUMENTS 3
 #define MIN_ARGUMENTS 2
@@ -16,12 +17,12 @@ int main(int argc, char* argv[]) {
     _check_params(argc, argv);
     char* address;
     char* service;
-    char* entry_file;
+    char* entry_file = "";
     _extract_params(argc, argv, &address, &service, &entry_file);
-    return _start_client(address, service);
+    return _start_client(address, service, entry_file);
 }
 
-int _check_params(int argc, char* argv[]) {
+void _check_params(int argc, char* argv[]) {
     int count_commands = argc - 1;
 
     if (count_commands > MAX_ARGUMENTS ||
@@ -39,6 +40,6 @@ void _extract_params(int argc, char* argv[], char** address, char** service,
     }
 }
 
-int _start_client(char* address, char* service) {
-    return start_client(address, service);
+int _start_client(char* address, char* service, char* entry_file) {
+    return start_client(address, service, entry_file);
 }

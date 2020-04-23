@@ -4,7 +4,7 @@
 
 #define _POSIX_C_SOURCE 200112l
 
-#include "./socket.h"
+#include "./common_socket.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

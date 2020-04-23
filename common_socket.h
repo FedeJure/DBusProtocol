@@ -1,6 +1,6 @@
 // Copyright [2019] <Federico Jure>
-#ifndef _SOCKET_E
-#define _SOCKET_E
+#ifndef COMMON_SOCKET_H_
+#define COMMON_SOCKET_H_
 #include <stdlib.h>
 
 typedef struct socket {

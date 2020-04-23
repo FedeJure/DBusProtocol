@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./main.h"
-#include "./client.h"
+#include "./server_main.h"
+#include "./server.h"
 #include "./signal.h"
 
 #define MAX_ARGUMENTS 1
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     return _start_server(service);
 }
 
-int _check_params(int argc, char* argv[]) {
+void _check_params(int argc, char* argv[]) {
     int count_commands = argc - 1;
 
     if (count_commands > MAX_ARGUMENTS ||
