@@ -1,6 +1,6 @@
 // Copyright [2019] <Federico Jure>
-#ifndef _SOCKET_E_
-#define _SOCKET_E_
+#ifndef _SOCKET_H_
+#define _SOCKET_H_
 
 #define _POSIX_C_SOURCE 200112l
 
@@ -46,7 +46,7 @@ int socket_connect(socket_t* self, const char* address, char* service) {
     if (res < 0 ) return ERROR;
 
     for (ptr = ai_list; (void*)ptr != NULL; ptr = ptr->ai_next) {
-        ip4addr.sin_addr.s_addr = *((uint32_t*) & 
+        ip4addr.sin_addr.s_addr = *((uint32_t*) &
             (((struct sockaddr_in*)ptr->ai_addr)->sin_addr));
         ip4addr.sin_family = AF_INET;
         ip4addr.sin_port = htons(atoi(service));
@@ -64,7 +64,7 @@ int socket_listen(socket_t* self, char* service) {
     self->service = service;
     ip4addr.sin_family = AF_INET;
     ip4addr.sin_addr.s_addr = INADDR_ANY;
-    ip4addr.sin_port = htons( atoi(service) );
+    ip4addr.sin_port = htons(atoi(service));
     int binded = bind(self->fd, (const struct sockaddr*)&ip4addr,
         sizeof(ip4addr));
     if (binded == -1) {
@@ -82,7 +82,7 @@ int socket_accept(socket_t* self, int* client_fd, char* service) {
     struct sockaddr_in ip4addr;
     ip4addr.sin_family = AF_INET;
     ip4addr.sin_addr.s_addr = INADDR_ANY;
-    ip4addr.sin_port = htons( atoi(service) );
+    ip4addr.sin_port = htons(atoi(service));
     size_t socket_size = sizeof(ip4addr);
     int accepted = accept(self->fd, (struct sockaddr*) &ip4addr,
         (socklen_t*)&socket_size);
@@ -109,7 +109,7 @@ int socket_read(int client_fd, char* buffer, int size) {
 
 int socket_send(int socket_fd, const char* buffer, int length) {
     int sent = 0;
-    while(sent < length) {
+    while (sent < length) {
         int sended = send(socket_fd, &buffer[sent], (size_t)length-sent,
             MSG_NOSIGNAL);
         if (sended < 0) {

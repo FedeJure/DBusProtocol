@@ -18,4 +18,4 @@ int socket_send(int socket_fd, const char* buffer, int length);
 int socket_send_next_length(int fd, int length);
 int socket_read_next_length(int fd);
 
-#endif
+#endif  // COMMON_SOCKET_H_

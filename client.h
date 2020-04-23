@@ -6,4 +6,4 @@
 int start_client(char* address, char* service, char* entry_file);
 int _process_message(socket_t* socket, const char* entry_file);
 
-#endif
+#endif  // CLIENT_H_
