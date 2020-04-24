@@ -10,14 +10,13 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int start_client(char* address, char* service, char* entry_file) {
+int start_client(char* address, char* service, FILE* entry_file) {
     printf("Starting client...\n");
     fflush(stdout);
     socket_t socket;
     if (socket_init(&socket) == -1) {
         return ERROR;
     }
-
     if (socket_connect(&socket, address, service) == ERROR) {
         return ERROR;
     }
@@ -25,7 +24,7 @@ int start_client(char* address, char* service, char* entry_file) {
     return _process_message(&socket, entry_file);
 }
 
-int _process_message(socket_t* socket, const char* entry_file) {
+int _process_message(socket_t* socket, const FILE* entry_file) {
     printf("Procesando comando");
     return SUCCESS;
 }

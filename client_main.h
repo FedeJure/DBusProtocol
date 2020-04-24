@@ -4,7 +4,7 @@
 
 void _check_params(int argc, char* argv[]);
 void _extract_params(int argc, char* argv[], char** address, char** service,
-                        char** entry_file);
-int _start_client(char* address, char* service, char* entry_file);
+                        FILE** entry_file);
+int _start_client(char* address, char* service, FILE* entry_file);
 
 #endif  // CLIENT_MAIN_H_
