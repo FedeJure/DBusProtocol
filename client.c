@@ -11,6 +11,8 @@
 #define ERROR 1
 #define SUCCESS 0
 
+#define BUFFER_SIZE 32
+
 int start_client(char* address, char* service, FILE* entry_file) {
     printf("Starting client...\n");
     fflush(stdout);
@@ -23,22 +25,23 @@ int start_client(char* address, char* service, FILE* entry_file) {
         return ERROR;
     }*/
 
-    return _process_message(&socket, entry_file);
+    return _process_file(&socket, entry_file);
 }
 
-int _process_message(socket_t* socket, FILE* entry_file) {
+int _process_file(socket_t* socket, FILE* entry_file) {
     reader_t reader;
-    size_t bytes = 32;
-    init_reader(&reader, entry_file, bytes);
-    char* buffer[bytes];
-
-    do
-    {
-        reader_next_buffer(&reader, buffer);
-        //process buffer
-        printf("%s\n", *buffer);
-        memset(buffer, 0, bytes);
+    init_reader(&reader, entry_file, BUFFER_SIZE);
+    char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE);
+    do {
+        reader_next_buffer_in_same_line(&reader, buffer);
+        _process_buffer(socket, buffer);
+        memset(buffer, 0, BUFFER_SIZE);
     } while (reader.reading == 1);
 
     return SUCCESS;
+}
+
+void _process_buffer(socket_t* socket, char* buffer) {
+    printf("\n%s",buffer);
 }

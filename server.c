@@ -24,6 +24,7 @@ int start_server(char* service) {
     }
     while (self.socket->fd != -1) {
         server_command_receive(&self);
+        printf("user connected\n");
     }
 
     return SUCCESS;
