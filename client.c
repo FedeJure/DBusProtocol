@@ -30,24 +30,41 @@ int start_client(char* address, char* service, FILE* entry_file) {
 
 int _process_file(socket_t* socket, FILE* entry_file) {
     reader_t reader;
-    char* to_send = (char*) malloc(sizeof(char)*32);
     init_reader(&reader, entry_file, BUFFER_SIZE);
-    char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-    do {
-        reader_next_buffer_in_same_line(&reader, buffer);
-        _process_buffer(socket, buffer, to_send);
-        memset(buffer, 0, BUFFER_SIZE);
-    } while (reader.reading == 1);
-    _send_message(socket, to_send);
+
+    while (reader.reading == true)
+    {
+        _process_line(socket, &reader);        
+    }
+    
+
 
     return SUCCESS;
 }
 
+void _process_line(socket_t* socket, reader_t* reader) {
+    char* line = malloc(1);
+    bool line_break = false;
+    char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE);
+    memset(line, 0, 1);
+    while (line_break == 0) {
+        line = realloc(line, strlen(line) + BUFFER_SIZE - 1);
+        memset(line + strlen(line), 0, BUFFER_SIZE);
+
+        reader_next_buffer_in_same_line(reader, buffer, &line_break);
+        _process_buffer(socket, buffer, line);
+        memset(buffer, 0, BUFFER_SIZE);
+    }
+    printf("%s\n", line);
+    _send_message(socket, line);
+    free(line);
+}
+
 void _process_buffer(socket_t* socket, char* buffer, char* to_send) {
-    printf("\n%s",buffer);
+    memcpy(to_send + strlen(to_send), buffer, strlen(buffer) + 1);
 }
 
 void _send_message(socket_t* socket, char* to_send) {
-    socket_send(socket->fd, to_send, sizeof(char)*strlen(to_send));
+    socket_send(socket->fd, to_send, strlen(to_send));
 }

@@ -9,6 +9,8 @@
 
 #define ERROR 1
 #define SUCCESS 0
+#define BUFFER_SIZE 32
+
 int start_server(char* service) {
     printf("Starting server...\n");
     fflush(stdout);
@@ -32,13 +34,16 @@ int start_server(char* service) {
 
 int server_command_receive(server_t* self) {
     int client_fd;
-    char buffer[32];
-    bzero(buffer, 32);
-    if (socket_accept(self->socket, &client_fd, self->socket->service) == -1) {
+    char* buffer = malloc(1);
+    memset(buffer, ' ', 1);
+    if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
         return -1;
     }
-    socket_read(client_fd, buffer, 32);
-    printf("%s\n", buffer);
+
+    while ( socket_read(client_fd, buffer, 32) > 0) {
+
+    }
+    printf("leido: %s\n", buffer);
     fflush(stdout);
     return SUCCESS;
 }

@@ -10,6 +10,6 @@ typedef struct reader_t {
 } reader_t;
 
 void init_reader(reader_t* self, FILE* file, int bytes);
-void reader_next_buffer_in_same_line(reader_t* self, char* buffer);
+void reader_next_buffer_in_same_line(reader_t* self, char* buffer, bool* line_break);
 
 #endif  // CLIENT_READER_H_

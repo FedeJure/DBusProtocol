@@ -10,21 +10,23 @@
 void init_reader(reader_t* self, FILE* file, int bytes) {
     self->bytes_to_read = bytes;
     self->file = file;
-    self->reading = READING;
+    self->reading = true;
 }
 
 
-void reader_next_buffer_in_same_line(reader_t* self, char* buffer) {
-    bool in_line = true;
+void reader_next_buffer_in_same_line(reader_t* self, char* buffer, bool* line_break) {
     for (size_t i = 0; i < self->bytes_to_read; i++) {
-        char readed = in_line ? fgetc(self->file) : ' ';
+        char readed = fgetc(self->file);
         if (readed == '\n') {
-            in_line = false;
-            readed = ' ';
+            *line_break = true;
+            buffer[i] = EOF;
         }
-        buffer[i] = readed;
         if (readed == EOF) {
-            self->reading = 0;
+            self->reading = false;
+            *line_break = true;
+        }
+        if (*line_break == false && self->reading == true) {
+            buffer[i] = readed;
         }
     }
 }
