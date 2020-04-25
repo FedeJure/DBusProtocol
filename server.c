@@ -32,11 +32,13 @@ int start_server(char* service) {
 
 int server_command_receive(server_t* self) {
     int client_fd;
-    char buffer[1];
-    bzero(buffer, 1);
+    char buffer[32];
+    bzero(buffer, 32);
     if (socket_accept(self->socket, &client_fd, self->socket->service) == -1) {
         return -1;
     }
-
+    socket_read(client_fd, buffer, 32);
+    printf("%s\n", buffer);
+    fflush(stdout);
     return SUCCESS;
 }
