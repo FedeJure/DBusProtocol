@@ -35,15 +35,30 @@ int start_server(char* service) {
 int server_command_receive(server_t* self) {
     int client_fd;
     char* buffer = malloc(1);
-    memset(buffer, ' ', 1);
+    memset(buffer, 0, 1);
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
         return -1;
     }
-
-    while ( socket_read(client_fd, buffer, 32) > 0) {
+    
+    char readed[1];
+    memset(&readed, ' ', 1);
+    printf("%ld", strlen(" "));
+    while ( socket_read(client_fd, readed, 1) > 0) {
+        size_t mem = strlen(buffer) + 1;
+        buffer = realloc(buffer, mem);
+        memset(buffer + strlen(buffer), 0, 1);
+        printf("%s\n", buffer);
+        memcpy(buffer + strlen(buffer), readed, strlen(buffer) + 1);
+        memset(readed, 0, 1);
 
     }
+
+
     printf("leido: %s\n", buffer);
     fflush(stdout);
     return SUCCESS;
+}
+
+void read_entry_buffer(int client_fd, char* buffer) {
+    
 }

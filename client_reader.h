@@ -2,6 +2,7 @@
 #ifndef CLIENT_READER_H_
 #define CLIENT_READER_H_
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct reader_t {
     int reading;
