@@ -51,12 +51,13 @@ void _process_line(socket_t* socket, reader_t* reader) {
     while (line_break == 0) {
         line = realloc(line, strlen(line) + BUFFER_SIZE - 1);
         memset(line + strlen(line), 0, BUFFER_SIZE);
-
         reader_next_buffer_in_same_line(reader, buffer, &line_break);
         _process_buffer(socket, buffer, line);
+        printf("buffer %s", buffer);
+
         memset(buffer, 0, BUFFER_SIZE);
     }
-    printf("%s\n", line);
+    printf("enviado: %s\n", line);
     _send_message(socket, line);
     free(line);
 }

@@ -1,19 +1,26 @@
+#include <string.h>
 #include "./common_dbus.h"
 
 
-void read_header(dbus_data_t* destination, char* buffer) {
-    parameter_t parameter = {
-        "type",
-        "data_type",
-        112
-    };
-    destination->body_length = 1;
-    destination->endianess = 1;
-    destination->flag = 0;
-    destination->id = 1;
-    destination->parameters = parameter;
+int dbus_read_header(dbus_data_t* self, char* buffer) {
+    return 0;
 }
 
-void make_header(char* buffer, dbus_data_t* data) {
-    // TODO
+int dbus_read_static_header(dbus_data_t* self, char* buffer) {
+    if (strlen(buffer) != dbus_get_static_size()) return 1;
+    self->endianess = buffer[0];
+    self->type = buffer[1];
+    self->flag = buffer[2];
+    self->version = buffer[3];
+    self->body_length = (unsigned int) buffer[4];
+    self->id = (unsigned int) buffer[4 + sizeof(int)];
+    return 0;
+}
+
+int dbus_make_header(char* buffer, dbus_data_t* data) {
+    return 0;
+}
+
+int dbus_get_static_size() {
+    return 4 + 2 * sizeof(int);
 }

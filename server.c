@@ -35,12 +35,12 @@ int start_server(char* service) {
 
 int _server_command_receive(server_t* self) {
 
-    size_t static_header_size = 4 + 2 * sizeof(int);
+    size_t static_header_size = dbus_get_static_size();
     int client_fd;
     dbus_data_t data;
     memset(&data, 0, sizeof(data));
 
-    char* buffer = malloc(static_header_size * sizeof(char));
+    char* buffer = malloc(static_header_size);
     memset(buffer, 0, static_header_size);
 
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
@@ -49,6 +49,8 @@ int _server_command_receive(server_t* self) {
     
     
     socket_read(client_fd, buffer, static_header_size);
+    dbus_read_static_header(&data, buffer);
+    
 
     printf("primer byte: %s", buffer);
 
