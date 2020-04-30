@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef _SOCKET_H_
 #define _SOCKET_H_
 

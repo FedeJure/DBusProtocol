@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>

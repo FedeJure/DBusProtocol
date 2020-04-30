@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef SERVER_MAIN_H_
 #define SERVER_MAIN_H_
 

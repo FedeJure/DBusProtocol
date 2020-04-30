@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef CLIENT_READER_H_
 #define CLIENT_READER_H_
 #include <stdio.h>

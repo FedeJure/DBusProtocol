@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef CLIENT_MAIN_H_
 #define CLIENT_MAIN_H_
 

@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef COMMON_SOCKET_H_
 #define COMMON_SOCKET_H_
 #include <stdlib.h>

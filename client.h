@@ -1,4 +1,4 @@
-// Copyright [2019] <Federico Jure>
+// Copyright [2020] <Federico Jure>
 #ifndef CLIENT_H_
 #define CLIENT_H_
 #include "./common_socket.h"

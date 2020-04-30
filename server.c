@@ -1,11 +1,12 @@
-// Copyright [2019] <Federico Jure>
-#include "./server.h"
+// Copyright [2020] <Federico Jure>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <strings.h>
+#include "./server.h"
+#include "./common_dbus.h"
 
 #define ERROR 1
 #define SUCCESS 0
@@ -25,40 +26,42 @@ int start_server(char* service) {
         return ERROR;
     }
     while (self.socket->fd != -1) {
-        server_command_receive(&self);
+        _server_command_receive(&self);
         printf("user connected\n");
     }
 
     return SUCCESS;
 }
 
-int server_command_receive(server_t* self) {
+int _server_command_receive(server_t* self) {
+
+    size_t static_header_size = 4 + 2 * sizeof(int);
     int client_fd;
-    char* buffer = malloc(1);
-    memset(buffer, 0, 1);
+    dbus_data_t data;
+    memset(&data, 0, sizeof(data));
+
+    char* buffer = malloc(static_header_size * sizeof(char));
+    memset(buffer, 0, static_header_size);
+
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
         return -1;
     }
     
-    char readed[1];
-    memset(&readed, ' ', 1);
-    printf("%ld", strlen(" "));
-    while ( socket_read(client_fd, readed, 1) > 0) {
-        size_t mem = strlen(buffer) + 1;
-        buffer = realloc(buffer, mem);
-        memset(buffer + strlen(buffer), 0, 1);
-        printf("%s\n", buffer);
-        memcpy(buffer + strlen(buffer), readed, strlen(buffer) + 1);
-        memset(readed, 0, 1);
+    
+    socket_read(client_fd, buffer, static_header_size);
 
-    }
+    printf("primer byte: %s", buffer);
 
 
-    printf("leido: %s\n", buffer);
+    //char* new_buffer = realloc(buffer, sizeof(*buffer) + size_step);
+    //memset(new_buffer + strlen(buffer) - size_step, 0, size_step);
+    //_receive_variable_header(client_fd, buffer);
+    //_receive_body(client_fd, buffer);
+
     fflush(stdout);
     return SUCCESS;
 }
 
-void read_entry_buffer(int client_fd, char* buffer) {
-    
+int _receive_variable_header(int client_fd, char* buffer ) {
+    return 0;
 }
