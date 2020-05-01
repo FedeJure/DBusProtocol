@@ -34,33 +34,23 @@ int start_server(char* service) {
 }
 
 int _server_command_receive(server_t* self) {
-
-    size_t static_header_size = dbus_get_static_size();
     int client_fd;
     dbus_data_t data;
-    memset(&data, 0, sizeof(data));
-
-    char* buffer = malloc(static_header_size);
-    memset(buffer, 0, static_header_size);
+    char** params_data = malloc(dbus_get_max_params_count() * sizeof(char*));
+    for (size_t i = 0; i < dbus_get_max_params_count(); i++) {
+        params_data[i] = malloc(1);
+    }
+    dbus_init(&data, &params_data);
 
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
         return -1;
     }
     
-    
-    socket_read(client_fd, buffer, static_header_size);
-    dbus_read_static_header(&data, buffer);
-    
-
-    printf("primer byte: %s", buffer);
-
-
-    //char* new_buffer = realloc(buffer, sizeof(*buffer) + size_step);
-    //memset(new_buffer + strlen(buffer) - size_step, 0, size_step);
-    //_receive_variable_header(client_fd, buffer);
-    //_receive_body(client_fd, buffer);
+    dbus_read_buffer(&data, client_fd);
 
     fflush(stdout);
+
+    for (size_t i = 0; i < dbus_get_max_params_count(); i++) { free(params_data[i]); }
     return SUCCESS;
 }
 
