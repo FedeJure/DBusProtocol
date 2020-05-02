@@ -37,20 +37,18 @@ int _server_command_receive(server_t* self) {
     int client_fd;
     dbus_data_t data;
     char** params_data = malloc(dbus_get_max_params_count() * sizeof(char*));
-    for (size_t i = 0; i < dbus_get_max_params_count(); i++) {
-        params_data[i] = malloc(1);
-    }
+    for (size_t i = 0; i < dbus_get_max_params_count(); i++) { params_data[i] = malloc(1); }
+    
     dbus_init(&data, &params_data);
 
-    if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) {
-        return -1;
-    }
+    if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) { return -1; }
     
     dbus_read_buffer(&data, client_fd);
 
     fflush(stdout);
 
     for (size_t i = 0; i < dbus_get_max_params_count(); i++) { free(params_data[i]); }
+    free(params_data);
     return SUCCESS;
 }
 
