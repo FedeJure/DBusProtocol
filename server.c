@@ -44,7 +44,6 @@ int _server_command_receive(server_t* self) {
     
     dbus_read_buffer(&data, client_fd);
     print_log(&data);
-    fflush(stdout);
 
     for (size_t i = 0; i < dbus_get_max_params_count(); i++) { free(params_data[i]); }
     free(params_data);
@@ -65,25 +64,28 @@ void print_log(dbus_data_t* data ) {
     
     char* variable_log = malloc(1);
     memset(variable_log, 0, 1);
-    _write_variable_log(variable_log, data);
+    _write_variable_log(&variable_log, data);
 
     printf(static_log, data->id, (*data->params_data)[1], (*data->params_data)[0],
         (*data->params_data)[2], (*data->params_data)[3], variable_log);
-
+    fflush(stdout);
     free(variable_log);
 }
 
-void _write_variable_log(char* variable_log, dbus_data_t* data) {
+void _write_variable_log(char** variable_log, dbus_data_t* data) {
     if (data->params_count > 4) {
-        char* prefix = "\n* Parámetros:\n";
-        variable_log = realloc(variable_log, strlen(prefix));
-        memcpy(variable_log, prefix, strlen(prefix));
+        char* prefix = "\n* Parámetros:";
+        *variable_log = realloc(*variable_log, strlen(prefix) + 1);
+        memcpy(*variable_log, prefix, strlen(prefix) + 1);
         for (size_t i = 4; i < data->params_count; i++) {
-            size_t actual_size = strlen(variable_log);
-            variable_log = realloc(variable_log, actual_size + data->params[i].length);
-            char aux[data->params[i].length];
-            sprintf(aux, "  * %s", (*data->params_data)[i]);
-            memcpy(variable_log + actual_size, aux, strlen(aux));
+            size_t actual_size = strlen(*variable_log) + 1;
+            size_t new_size = actual_size + data->params[i].length + 1;
+            *variable_log = realloc(*variable_log, new_size);
+            char* aux_prefix = "\n  * %s";
+            char* aux = malloc(data->params[i].length + strlen(aux_prefix) + 1);
+            sprintf(aux, aux_prefix, (*data->params_data)[i]);
+            memcpy(*variable_log, aux, strlen(aux) + 1);
+            free(aux);
         }
                 
     }
