@@ -27,7 +27,6 @@ int start_server(char* service) {
     }
     while (self.socket->fd != -1) {
         _server_command_receive(&self);
-        printf("user connected\n");
     }
 
     return SUCCESS;
@@ -57,13 +56,35 @@ int _receive_variable_header(int client_fd, char* buffer ) {
 }
 
 void print_log(dbus_data_t* data ) {
-    char* aux = 
-        "* Id: %d\n"
+    char* static_log = 
+        "* Id: 0x%04d\n"
         "* Destino: %s\n"
         "* Path: %s\n"
         "* Interfaz: %s\n"
-        "* Método: %s\n";
+        "* Método: %s%s";
+    
+    char* variable_log = malloc(1);
+    memset(variable_log, 0, 1);
+    _write_variable_log(variable_log, data);
 
-    printf(aux, data->id, (*data->params_data)[1], (*data->params_data)[0],
-        (*data->params_data)[2], (*data->params_data)[3]);
+    printf(static_log, data->id, (*data->params_data)[1], (*data->params_data)[0],
+        (*data->params_data)[2], (*data->params_data)[3], variable_log);
+
+    free(variable_log);
+}
+
+void _write_variable_log(char* variable_log, dbus_data_t* data) {
+    if (data->params_count > 4) {
+        char* prefix = "\n* Parámetros:\n";
+        variable_log = realloc(variable_log, strlen(prefix));
+        memcpy(variable_log, prefix, strlen(prefix));
+        for (size_t i = 4; i < data->params_count; i++) {
+            size_t actual_size = strlen(variable_log);
+            variable_log = realloc(variable_log, actual_size + data->params[i].length);
+            char aux[data->params[i].length];
+            sprintf(aux, "  * %s", (*data->params_data)[i]);
+            memcpy(variable_log + actual_size, aux, strlen(aux));
+        }
+                
+    }
 }

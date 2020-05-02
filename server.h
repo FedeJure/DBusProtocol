@@ -13,5 +13,6 @@ int _server_command_receive(server_t* self);
 int _receive_variable_header(int client_fd, char* buffer);
 void _receive_body(int client_fd, char* buffer);
 void print_log(dbus_data_t* data);
+void _write_variable_log(char* variable_log, dbus_data_t* data);
 
 #endif  // SERVER_H_
