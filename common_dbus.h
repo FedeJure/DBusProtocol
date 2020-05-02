@@ -33,7 +33,7 @@ int dbus_get_static_size();
 int dbus_get_param_size();
 void dbus_init(dbus_data_t* self, char*** data);
 int dbus_get_max_params_count();
-
+int round_up_eight(int to_round);
 
 
 #endif  // COMMON_DBUS_H_

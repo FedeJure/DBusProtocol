@@ -53,8 +53,9 @@ int _read_header_parameters(dbus_data_t* self, int client_fd) {
         self->params[i].type = buffer[0];
         self->params[i].data_type = buffer[2];
         self->params[i].length = (unsigned int)buffer[4]; // TODO no toma en cuenta padding, reveer esto
-        (*self->params_data)[i] = realloc((*self->params_data)[i], self->params[i].length);
-        socket_read(client_fd, (*self->params_data)[i], self->params[i].length);    
+        int rounded_length = round_up_eight(self->params[i].length + 1);
+        (*self->params_data)[i] = realloc((*self->params_data)[i], rounded_length);
+        socket_read(client_fd, (*self->params_data)[i], rounded_length);    
     }
     
     return 0;
@@ -92,4 +93,9 @@ int dbus_get_param_size() {
 
 int dbus_get_max_params_count() {
     return MAX_PARAMS_COUNT;
+}
+
+int round_up_eight(int to_round) {
+        if (to_round % 4 == 0) return to_round;
+        return (4 - to_round % 4) + to_round;
 }
