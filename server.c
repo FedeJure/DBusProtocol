@@ -38,13 +38,13 @@ int _server_command_receive(server_t* self) {
     dbus_data_t data;
     char** params_data = malloc(dbus_get_max_params_count() * sizeof(char*));
     for (size_t i = 0; i < dbus_get_max_params_count(); i++) { params_data[i] = malloc(1); }
-    
+
     dbus_init(&data, &params_data);
 
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) { return -1; }
     
     dbus_read_buffer(&data, client_fd);
-
+    print_log(&data);
     fflush(stdout);
 
     for (size_t i = 0; i < dbus_get_max_params_count(); i++) { free(params_data[i]); }
@@ -54,4 +54,16 @@ int _server_command_receive(server_t* self) {
 
 int _receive_variable_header(int client_fd, char* buffer ) {
     return 0;
+}
+
+void print_log(dbus_data_t* data ) {
+    char* aux = 
+        "* Id: %d\n"
+        "* Destino: %s\n"
+        "* Path: %s\n"
+        "* Interfaz: %s\n"
+        "* Método: %s\n";
+
+    printf(aux, data->id, (*data->params_data)[1], (*data->params_data)[0],
+        (*data->params_data)[2], (*data->params_data)[3]);
 }
