@@ -45,6 +45,8 @@ int _server_command_receive(server_t* self) {
     dbus_read_buffer(&data, client_fd);
     print_log(&data);
 
+    char* response = "OK";
+    socket_send(client_fd, response, strlen(response) + 1);
     for (size_t i = 0; i < dbus_get_max_params_count(); i++) { free(params_data[i]); }
     free(params_data);
     return SUCCESS;
@@ -60,7 +62,7 @@ void print_log(dbus_data_t* data ) {
         "* Destino: %s\n"
         "* Path: %s\n"
         "* Interfaz: %s\n"
-        "* Método: %s%s";
+        "* Método: %s%s\n";
     
     char* variable_log = malloc(1);
     memset(variable_log, 0, 1);
