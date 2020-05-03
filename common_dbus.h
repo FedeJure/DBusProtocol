@@ -17,22 +17,27 @@ typedef struct dbus {
     unsigned int version;
     unsigned int body_length;
     unsigned int id;
+    unsigned int array_length;
     unsigned int params_count;
     dbus_params_t params[MAX_PARAMS_COUNT];
     char*** params_data;
+    char*** body_data;
 } dbus_data_t;
 
 
 int dbus_make_header(dbus_data_t* data, char* buffer, unsigned int body_size,
                         unsigned int id, unsigned int params_count, dbus_params_t* params);
-int dbus_read_buffer(dbus_data_t* self, int client_fd);
+int dbus_read_header(dbus_data_t* self, int client_fd);
 int _read_header_general_data(dbus_data_t* self, int client_fd);
 int _read_parameters(dbus_data_t* self, int client_fd);
+int dbus_read_body(dbus_data_t* self,int client_fd);
 int dbus_get_static_size();
 int dbus_get_param_size();
-void dbus_init(dbus_data_t* self, char*** data);
+void dbus_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_get_max_params_count();
-int round_up_four(int to_round);
+int round_up_eigth(int to_round);
+int _read_next_parameter(int client_fd, char* buffer, int size);
+
 
 
 #endif  // COMMON_DBUS_H_
