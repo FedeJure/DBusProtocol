@@ -12,5 +12,7 @@ typedef struct reader_t {
 
 void init_reader(reader_t* self, FILE* file, int bytes);
 void reader_next_buffer_in_same_line(reader_t* self, char* buffer, bool* line_break);
+void reader_next_buffer_until_space(reader_t* self, char** buffer);
+bool _reader_stop_reading_line(char c);
 
 #endif  // CLIENT_READER_H_

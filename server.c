@@ -38,11 +38,8 @@ int _server_command_receive(server_t* self) {
     char** params_data = malloc(MAX_PARAMS_COUNT * sizeof(char*));
     char** body_data = malloc(1 * sizeof(char*));
     for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) { params_data[i] = malloc(1); }
-
     dbus_init(&data, &params_data, &body_data);
-
     if (socket_accept(self->socket, &client_fd, self->socket->service) < 0) { return -1; }
-    
     dbus_read_header(&data, client_fd);
 
     if (data.params_count > MAX_PARAMS_COUNT - 1) {
@@ -51,7 +48,7 @@ int _server_command_receive(server_t* self) {
         dbus_read_body(&data, client_fd);
     }
     
-    print_log(&data);
+    _print_log(&data);
 
     char* response = "OK";
     socket_send(client_fd, response, strlen(response) + 1);
@@ -62,11 +59,7 @@ int _server_command_receive(server_t* self) {
     return SUCCESS;
 }
 
-int _receive_variable_header(int client_fd, char* buffer ) {
-    return 0;
-}
-
-void print_log(dbus_data_t* data ) {
+void _print_log(dbus_data_t* data ) {
     char* static_log = 
         "* Id: 0x%04d\n"
         "* Destino: %s\n"

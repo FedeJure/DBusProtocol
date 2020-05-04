@@ -7,11 +7,13 @@
 #include "./client.h"
 #include "./client_reader.h"
 #include "./common_socket.h"
+#include "./common_dbus.h"
 
 #define ERROR 1
 #define SUCCESS 0
 
 #define BUFFER_SIZE 32
+#define PARAMS_COUNT 4
 
 int start_client(char* address, char* service, FILE* entry_file) {
     printf("Starting client...\n");
@@ -43,27 +45,18 @@ int _process_file(socket_t* socket, FILE* entry_file) {
 }
 
 void _process_line(socket_t* socket, reader_t* reader) {
-    char* line = malloc(1);
-    bool line_break = false;
-    char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-    memset(line, 0, 1);
-    while (line_break == 0) {
-        line = realloc(line, strlen(line) + BUFFER_SIZE - 1);
-        memset(line + strlen(line), 0, BUFFER_SIZE);
-        reader_next_buffer_in_same_line(reader, buffer, &line_break);
-        _process_buffer(socket, buffer, line);
-        printf("buffer %s", buffer);
-
-        memset(buffer, 0, BUFFER_SIZE);
+    char* params[PARAMS_COUNT];
+    for (size_t i = 0; i < PARAMS_COUNT; i++){
+        params[i] = malloc(1);
+        reader_next_buffer_until_space(reader, &params[i]);
     }
-    printf("enviado: %s\n", line);
-    _send_message(socket, line);
-    free(line);
+    // _send_message(socket, line);
+    for (size_t i = 0; i < PARAMS_COUNT; i++) { free(params[i]); }
+    
 }
 
-void _process_buffer(socket_t* socket, char* buffer, char* to_send) {
-    memcpy(to_send + strlen(to_send), buffer, strlen(buffer) + 1);
+void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
+    memcpy(to_send, *buffer, strlen(*buffer) + 1);
 }
 
 void _send_message(socket_t* socket, char* to_send) {
