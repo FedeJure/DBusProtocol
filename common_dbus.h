@@ -35,7 +35,7 @@ void dbus_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_get_max_params_count();
 int round_up_eigth(int to_round);
 int _read_next_parameter(int client_fd, char* buffer, int size);
-void _dbus_build_stream(char*** params, unsigned int params_count, unsigned int id);
+size_t _dbus_build_stream(char** stream, char*** params, unsigned int params_count, unsigned int id);
 int _dbus_get_body_length(char*** params, int count);
 int _dbus_get_header_length(char*** params, int count);
 void _dbus_build_static_header(char** stream_chunk, int* stream_pointer, char*** signature, int method_params_count, __uint32_t id);
