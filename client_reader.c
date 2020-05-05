@@ -37,20 +37,26 @@ void reader_next_buffer_until_space(reader_t* self, char** buffer) {
     *buffer = realloc(*buffer, size);
     memset(*buffer, 0, size);
     int index = 0;
-    do {
-        (*buffer)[index] = fgetc(self->file);
+    char readed = 0;
+    bool keep_reading = true;
+    while (keep_reading == true) {
+        readed = fgetc(self->file);
         if (strlen(*buffer) >= size) {
             size = size + self->bytes_to_read;
             *buffer = realloc(*buffer, size);
         }
-        if ((*buffer)[index] == EOF) {
+        if (readed == EOF) {
             self->reading = false;
         }
+        if (_reader_stop_reading_line_condition(readed) == true) {
+            keep_reading = false;
+            continue;
+        }
+        (*buffer)[index] = readed;
         index++;
-        //*buffer[strlen(*buffer)] = readed;
-    } while(_reader_stop_reading_line((*buffer)[index-1]) != true);
+    }
 }
 
-bool _reader_stop_reading_line(char c) {
-    return c == EOF || c == '\n' || c == ' ';
+bool _reader_stop_reading_line_condition(char c) {
+    return c == '\n' || c == ' ';
 }

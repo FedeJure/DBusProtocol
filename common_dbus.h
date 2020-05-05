@@ -3,6 +3,13 @@
 #define COMMON_DBUS_H_
 
 #define MAX_PARAMS_COUNT 5
+enum DBUS_PARAMS {
+    destiny = 0,
+    path,
+    interface,
+    method,
+    params
+} DBUS_PARAMS;
 
 typedef struct params {
     char type;
@@ -25,8 +32,6 @@ typedef struct dbus {
 } dbus_data_t;
 
 
-int dbus_make_header(dbus_data_t* data, char* buffer, unsigned int body_size,
-                        unsigned int id, unsigned int params_count, dbus_params_t* params);
 int dbus_read_header(dbus_data_t* self, int client_fd);
 int _read_header_general_data(dbus_data_t* self, int client_fd);
 int _read_parameters(dbus_data_t* self, int client_fd);
@@ -37,7 +42,10 @@ void dbus_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_get_max_params_count();
 int round_up_eigth(int to_round);
 int _read_next_parameter(int client_fd, char* buffer, int size);
-
-
+void _dbus_build_stream(char*** params, unsigned int id);
+int _dbus_get_body_length(char*** params);
+void _dbus_get_signature_method(char*** buffer, char** method_name, char*** signature, int params_count);
+int _dbus_get_method_params_count(char* method);
+void _dbus_read_until_separator(char** destination, char** pointer, char** rest, char* delim);
 
 #endif  // COMMON_DBUS_H_

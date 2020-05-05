@@ -45,13 +45,25 @@ int _process_file(socket_t* socket, FILE* entry_file) {
 }
 
 void _process_line(socket_t* socket, reader_t* reader) {
-    char* params[PARAMS_COUNT];
-    for (size_t i = 0; i < PARAMS_COUNT; i++){
+    char** params = malloc(sizeof(char*) * PARAMS_COUNT);
+    bool early_return = false;
+    int params_count = PARAMS_COUNT;
+    for (size_t i = 0; i < params_count; i++){
         params[i] = malloc(1);
         reader_next_buffer_until_space(reader, &params[i]);
+        printf("%ld\n", strlen(params[i]));
+        printf("%s\n", params[i]);
+        if (reader->reading == false || strlen(params[i]) <= 1) {
+            reader->reading = false;
+            early_return = true;
+            params_count = i + 1;
+            break;
+        }
     }
+    if (early_return == false) { _dbus_build_stream(&params, 1); }
     // _send_message(socket, line);
-    for (size_t i = 0; i < PARAMS_COUNT; i++) { free(params[i]); }
+    for (size_t i = 0; i < params_count; i++) { free(params[i]); }
+    free(params);
     
 }
 
