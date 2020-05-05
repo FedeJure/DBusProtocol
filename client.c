@@ -58,7 +58,12 @@ void _process_line(socket_t* socket, reader_t* reader) {
             break;
         }
     }
-    if (early_return == false) { _dbus_build_stream(&params, 1, params_count); }
+    if (early_return == false) {
+        char* stream = malloc(1);
+        size_t size = _dbus_build_stream(&stream, &params, params_count, 1);
+        _send_message(socket, stream, size);
+        free(stream);
+    }
     // _send_message(socket, line);
     for (size_t i = 0; i < params_count; i++) { free(params[i]); }
     free(params);
@@ -68,6 +73,6 @@ void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
     memcpy(to_send, *buffer, strlen(*buffer) + 1);
 }
 
-void _send_message(socket_t* socket, char* to_send) {
-    socket_send(socket->fd, to_send, strlen(to_send));
+void _send_message(socket_t* socket, char* to_send, size_t size) {
+    socket_send(socket->fd, to_send, size);
 }

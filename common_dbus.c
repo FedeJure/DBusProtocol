@@ -70,7 +70,6 @@ int dbus_read_body(dbus_data_t* self,int client_fd) {
     int index = 0;
     while (bytes_readed < self->body_length) {
         bytes_readed += round_up_eigth(socket_read(client_fd, buffer, static_size_to_read));
-        printf("%s\n", buffer);
         unsigned int length = buffer[0]; 
         (*self->body_data)[index] = realloc((*self->body_data)[index], length + 1);
         bytes_readed += round_up_eigth(socket_read(client_fd, (*self->body_data)[index], length + 1));
@@ -102,7 +101,7 @@ int round_up_eigth(int to_round) {
         return (8 - to_round % 8) + to_round;
 }
 
-void _dbus_build_stream(char*** params, unsigned int params_count, unsigned int id) {
+size_t _dbus_build_stream(char** stream, char*** params, unsigned int params_count, unsigned int id) {
     int method_params_count = _dbus_get_method_params_count((*params)[3]);
     char** signature = malloc( method_params_count * sizeof(char*));
     for (size_t i = 0; i < method_params_count; i++) { signature[i] = malloc(1); }
@@ -110,25 +109,25 @@ void _dbus_build_stream(char*** params, unsigned int params_count, unsigned int 
     char* method_name = malloc(1);
     _dbus_get_signature_method(params, &method_name, &signature, method_params_count);
 
-    size_t static_size = 4 + 2 * sizeof(__uint32_t);
+    size_t static_size = 4 + 3 * sizeof(__uint32_t);
+    size_t header_size = _dbus_get_header_length(params, params_count, method_params_count);
     size_t stream_size = static_size +
-                        _dbus_get_body_length(&signature, method_params_count) + sizeof(__uint32_t) +
-                        _dbus_get_header_length(params, params_count) + sizeof(__uint32_t);
+                        _dbus_get_body_length(&signature, method_params_count) +
+                        header_size;
     int stream_pointer = 0;
-    char* stream_chunk = malloc(stream_size);
+    *stream = realloc((*stream), stream_size);
+    char* stream_chunk = *stream;
     memset(stream_chunk, 0, stream_size);
 
     _dbus_build_static_header(&stream_chunk, &stream_pointer, &signature, method_params_count, id);
-    stream_pointer++;
-    _dbus_build_variable_header(&stream_chunk, &stream_pointer, params, params_count);
-    stream_pointer++;
+    _dbus_build_variable_header(&stream_chunk, &stream_pointer, params, params_count, header_size);
     _dbus_build_body(&stream_chunk, &stream_pointer, &signature, method_params_count);
 
     
     for (size_t i = 0; i < method_params_count; i++) { free(signature[i]); }
     free(signature);
-    free(stream_chunk);
     free(method_name);
+    return stream_size;
 }
 
 void _dbus_build_static_header(char** stream_chunk, int* stream_pointer, char*** signature, int method_params_count, __uint32_t id) {
@@ -137,20 +136,29 @@ void _dbus_build_static_header(char** stream_chunk, int* stream_pointer, char***
     (*stream_chunk)[(*stream_pointer)++] = 0x01;
     (*stream_chunk)[(*stream_pointer)++] = 0x0;
     (*stream_chunk)[(*stream_pointer)++] = 0x01;
-    (*stream_chunk)[*stream_pointer] =  betole(_dbus_get_body_length(signature, method_params_count));
-    (*stream_chunk)[*stream_pointer += sizeof(__uint32_t)] = betole(id);
+    _dbus_save_length(stream_chunk, stream_pointer, betole(_dbus_get_body_length(signature, method_params_count)));
+    _dbus_save_length(stream_chunk, stream_pointer, betole(id));
+
 }
 
-void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer, char*** params, int params_count) {
-    (*stream_chunk)[(*stream_pointer)++] = betole(_dbus_get_header_length(params, params_count));
+void _dbus_save_length(char** stream_chunk, int* stream_pointer, __uint32_t num) {
+    char* aux = malloc(sizeof(__uint32_t));
+    memset(aux, 0, sizeof(__uint32_t));
+    save_decimal_as_bytes(&aux, num);
+    memcpy(*stream_chunk + *stream_pointer, aux, sizeof(__uint32_t));
+    *stream_pointer += sizeof(__uint32_t);
+    free(aux);
+}
+
+void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer, char*** params, int params_count, int variable_header_length) {
+    _dbus_save_length(stream_chunk, stream_pointer, betole(variable_header_length));
     char params_types[4] = { 0x6, 0x1, 0x2, 0x3};
     char params_data_types[4] = { 's', 'o', 's', 's'};
     for (size_t i = 0; i < params_count; i++) {
         (*stream_chunk)[(*stream_pointer)++] = params_types[i];
         (*stream_chunk)[(*stream_pointer)++] = 0x1;
         (*stream_chunk)[(*stream_pointer)++] = params_data_types[i];
-        (*stream_chunk)[(*stream_pointer)] = strlen((*params)[i]);
-        (*stream_pointer) += sizeof(__uint32_t);
+        _dbus_save_length(stream_chunk, stream_pointer, betole(strlen((*params)[i])));
         memcpy((*stream_chunk) + (*stream_pointer), (*params)[i], strlen((*params)[i]) + 1);
         (*stream_pointer) += i == (params_count - 1) ? 
                                 strlen((*params)[i]) :
@@ -160,7 +168,6 @@ void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer, char*
 
 void _dbus_build_body(char** stream_chunk, int* stream_pointer, char*** signature, int method_params_count) {
     for (size_t i = 0; i < method_params_count; i++) {
-        printf("\n%ld\n", i);
         (*stream_chunk)[(*stream_pointer)] = strlen((*signature)[i]);
         memcpy((*stream_chunk) + (*stream_pointer), (*signature)[i], strlen((*signature)[i]) + 1);
         (*stream_pointer) += (i == method_params_count - 1) ? 
@@ -177,16 +184,23 @@ int _dbus_get_body_length(char*** signature, int count) {
         length += round_up_eigth(strlen((*signature)[i]) + 1);
     }
     length += strlen((*signature)[count - 1]) + 1;
-    return length;
+    return length + sizeof(__uint32_t);
 }
 
-int _dbus_get_header_length(char*** params, int count) {
+int _dbus_get_header_length(char*** params, int count, int signature_count) {
     size_t length = 0;
-    length += sizeof(__uint32_t);
     for (size_t i = 0; i < count - 1; i++) {
-        length += round_up_eigth(sizeof(__uint32_t) + strlen((*params)[i]) + 1);
+        length += ((i == count -1) && signature_count == 0) ? 
+            round_up_eigth(5 + sizeof(__uint32_t) + strlen((*params)[i])) :
+            5 + sizeof(__uint32_t) + strlen((*params)[i]);
     }
-    length += sizeof(__uint32_t) + strlen((*params)[count - 1]) + 1;
+    if (signature_count > 0) {
+        length += 4 + (2 + signature_count);
+    }
+    length += 8 + strlen((*params)[count - 1]) + 1;
+
+    printf("%ld", length);
+    fflush(stdout);
     return length;
 }
 
