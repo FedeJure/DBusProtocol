@@ -16,7 +16,6 @@
 #define PARAMS_COUNT 4
 
 int start_client(char* address, char* service, FILE* entry_file) {
-    printf("Starting client...\n");
     fflush(stdout);
 
     socket_t socket;

@@ -13,7 +13,6 @@
 #define BUFFER_SIZE 32
 
 int start_server(char* service) {
-    printf("Starting server...\n");
     fflush(stdout);
     socket_t socket;
     server_t self;
