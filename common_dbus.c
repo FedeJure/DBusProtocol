@@ -110,10 +110,11 @@ size_t _dbus_build_stream(char** stream, char*** params, unsigned int params_cou
     _dbus_get_signature_method(params, &method_name, &signature, method_params_count);
 
     size_t static_size = 4 + 3 * sizeof(__uint32_t);
-    size_t header_size = _dbus_get_header_length(params, params_count, method_params_count);
+    size_t header_size = _dbus_get_header_length_no_padding_on_last(params, params_count, method_params_count);
     size_t stream_size = static_size +
-                        _dbus_get_body_length(&signature, method_params_count) +
-                        header_size;
+                        _dbus_get_body_length_no_padding_on_last(&signature, method_params_count) +
+                        round_up_eigth(header_size);
+    printf("\nsize static: %ld\nsize header: %ld\n size total: %ld\n",static_size, header_size, stream_size);
     int stream_pointer = 0;
     *stream = realloc((*stream), stream_size);
     char* stream_chunk = *stream;
@@ -136,7 +137,7 @@ void _dbus_build_static_header(char** stream_chunk, int* stream_pointer, char***
     (*stream_chunk)[(*stream_pointer)++] = 0x01;
     (*stream_chunk)[(*stream_pointer)++] = 0x0;
     (*stream_chunk)[(*stream_pointer)++] = 0x01;
-    _dbus_save_length(stream_chunk, stream_pointer, betole(_dbus_get_body_length(signature, method_params_count)));
+    _dbus_save_length(stream_chunk, stream_pointer, betole(_dbus_get_body_length_no_padding_on_last(signature, method_params_count)));
     _dbus_save_length(stream_chunk, stream_pointer, betole(id));
 
 }
@@ -177,7 +178,7 @@ void _dbus_build_body(char** stream_chunk, int* stream_pointer, char*** signatur
     
 }
 
-int _dbus_get_body_length(char*** signature, int count) {
+int _dbus_get_body_length_no_padding_on_last(char*** signature, int count) {
     size_t length = 0;
     for (size_t i = 0; i < count - 1; i++) {
         length += sizeof(__uint32_t);
@@ -187,19 +188,18 @@ int _dbus_get_body_length(char*** signature, int count) {
     return length + sizeof(__uint32_t);
 }
 
-int _dbus_get_header_length(char*** params, int count, int signature_count) {
+int _dbus_get_header_length_no_padding_on_last(char*** params, int count, int signature_count) {
     size_t length = 0;
     for (size_t i = 0; i < count - 1; i++) {
-        length += ((i == count -1) && signature_count == 0) ? 
-            round_up_eigth(5 + sizeof(__uint32_t) + strlen((*params)[i])) :
-            5 + sizeof(__uint32_t) + strlen((*params)[i]);
+        size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
+        length += ((i == count - 1) && (signature_count == 0) ) 
+            ? length_and_data :
+            round_up_eigth(length_and_data);
     }
     if (signature_count > 0) {
         length += 4 + (2 + signature_count);
     }
     length += 8 + strlen((*params)[count - 1]) + 1;
-
-    fflush(stdout);
     return length;
 }
 
