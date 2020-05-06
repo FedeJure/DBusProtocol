@@ -159,17 +159,29 @@ void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer, char*
         (*stream_chunk)[(*stream_pointer)++] = params_types[i];
         (*stream_chunk)[(*stream_pointer)++] = 0x1;
         (*stream_chunk)[(*stream_pointer)++] = params_data_types[i];
+        (*stream_pointer)++; //  \0 after type
         _dbus_save_length(stream_chunk, stream_pointer, betole(strlen((*params)[i])));
         memcpy((*stream_chunk) + (*stream_pointer), (*params)[i], strlen((*params)[i]) + 1);
-        (*stream_pointer) += i == (params_count - 1) ? 
-                                strlen((*params)[i]) :
-                                round_up_eigth(strlen((*params)[i]));
+        (*stream_pointer) += round_up_eigth(strlen((*params)[i]) + 1);
     }
 }
 
 void _dbus_build_body(char** stream_chunk, int* stream_pointer, char*** signature, int method_params_count) {
+    size_t aux_padding = round_up_eigth(6 + method_params_count);
+    int after_initial_body = *stream_pointer + aux_padding;
+    (*stream_chunk)[(*stream_pointer)++] = 0x8;
+    (*stream_chunk)[(*stream_pointer)++] = 0x1;
+    (*stream_chunk)[(*stream_pointer)++] = 'g';
+    (*stream_pointer)++; //  \0 after type
+    (*stream_chunk)[(*stream_pointer)++] = method_params_count + '0';
     for (size_t i = 0; i < method_params_count; i++) {
-        (*stream_chunk)[(*stream_pointer)] = strlen((*signature)[i]);
+        (*stream_chunk)[(*stream_pointer)++] = 's';        
+    }
+    *stream_pointer = after_initial_body;
+
+    
+    for (size_t i = 0; i < method_params_count; i++) {
+        _dbus_save_length(stream_chunk, stream_pointer, betole(strlen((*signature)[i])));
         memcpy((*stream_chunk) + (*stream_pointer), (*signature)[i], strlen((*signature)[i]) + 1);
         (*stream_pointer) += (i == method_params_count - 1) ? 
                             strlen((*signature)[i]) + 1 :
@@ -198,7 +210,7 @@ int _dbus_get_header_length_no_padding_on_last(char*** params, int count, int si
         printf("\nparam: %s ,%ld",(*params)[i], length);
     }
     if (signature_count > 0) {
-        length += sizeof(__uint32_t) + (2 + signature_count);
+        length += round_up_eigth(sizeof(__uint32_t) + (2 + signature_count));
     }
     return length;
 }
