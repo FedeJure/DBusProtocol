@@ -199,7 +199,6 @@ int _dbus_get_header_length(char*** params, int count, int signature_count) {
     }
     length += 8 + strlen((*params)[count - 1]) + 1;
 
-    printf("%ld", length);
     fflush(stdout);
     return length;
 }

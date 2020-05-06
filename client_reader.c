@@ -47,6 +47,7 @@ void reader_next_buffer_until_space(reader_t* self, char** buffer) {
         }
         if (readed == EOF) {
             self->reading = false;
+            keep_reading = false;
         }
         if (_reader_stop_reading_line_condition(readed) == true) {
             keep_reading = false;
