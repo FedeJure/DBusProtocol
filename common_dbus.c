@@ -190,16 +190,16 @@ int _dbus_get_body_length_no_padding_on_last(char*** signature, int count) {
 
 int _dbus_get_header_length_no_padding_on_last(char*** params, int count, int signature_count) {
     size_t length = 0;
-    for (size_t i = 0; i < count - 1; i++) {
+    for (size_t i = 0; i < count; i++) {
         size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
         length += ((i == count - 1) && (signature_count == 0) ) 
             ? length_and_data :
             round_up_eigth(length_and_data);
+        printf("\nparam: %s ,%ld",(*params)[i], length);
     }
     if (signature_count > 0) {
-        length += 4 + (2 + signature_count);
+        length += sizeof(__uint32_t) + (2 + signature_count);
     }
-    length += 8 + strlen((*params)[count - 1]) + 1;
     return length;
 }
 
