@@ -173,7 +173,7 @@ void _dbus_build_body(char** stream_chunk, int* stream_pointer, char*** signatur
     (*stream_chunk)[(*stream_pointer)++] = 0x1;
     (*stream_chunk)[(*stream_pointer)++] = 'g';
     (*stream_pointer)++; //  \0 after type
-    (*stream_chunk)[(*stream_pointer)++] = method_params_count + '0';
+    (*stream_chunk)[(*stream_pointer)++] = (method_params_count >> 24) & 0xFF;
     for (size_t i = 0; i < method_params_count; i++) {
         (*stream_chunk)[(*stream_pointer)++] = 's';        
     }
