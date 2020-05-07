@@ -38,7 +38,7 @@ int _process_file(socket_t* socket, FILE* entry_file) {
         _process_line(socket, &reader);        
     }
     
-
+    socket_release(socket);
 
     return SUCCESS;
 }
@@ -63,7 +63,6 @@ void _process_line(socket_t* socket, reader_t* reader) {
         _send_message(socket, stream, size);
         free(stream);
     }
-    // _send_message(socket, line);
     for (size_t i = 0; i < params_count; i++) { free(params[i]); }
     free(params);
 }

@@ -22,6 +22,7 @@ typedef struct dbus {
     dbus_params_t params[MAX_PARAMS_COUNT];
     char*** params_data;
     char*** body_data;
+    int signature_count;
 } dbus_data_t;
 
 

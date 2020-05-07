@@ -44,20 +44,31 @@ int _read_header_general_data(dbus_data_t* self, int client_fd) {
 }
 
 int _read_parameters(dbus_data_t* self, int client_fd) {
-    size_t static_size_to_read = 8;    
-    char buffer[static_size_to_read];
+    size_t static_size_to_read = 4;    
     int index = 0;
     int bytes_readed = 0;
     while (bytes_readed < round_up_eigth(self->array_length)) {
+        char buffer[static_size_to_read];
         bytes_readed += socket_read(client_fd, buffer, static_size_to_read);
         self->params[index].type = buffer[0];
         self->params[index].data_type = buffer[2];
-        self->params[index].length = (unsigned int)buffer[4];
+        if (self->params[index].type == 0x8) {
+            char params_count;
+            bytes_readed += socket_read(client_fd, &params_count, 1);
+            self->params_count = params_count;
+            int length_to_read = round_up_eigth(params_count + 1);
+            char params_types[length_to_read]; // para saltear los tipos de cada parametro ya q son string
+            bytes_readed += socket_read(client_fd, params_types, length_to_read);
+        }
+        else {
+            char readed_length[static_size_to_read];
+            bytes_readed += socket_read(client_fd, readed_length, static_size_to_read);
+            self->params[index].length = (unsigned int)readed_length[0];
+            int rounded_length = round_up_eigth(self->params[index].length + 1);
+            (*self->params_data)[index] = realloc((*self->params_data)[index], rounded_length);
+            bytes_readed += socket_read(client_fd, (*self->params_data)[index], rounded_length);  
+        }
         self->params_count++;
-        if (bytes_readed >= round_up_eigth(self->array_length)) { break; }
-        int rounded_length = round_up_eigth(self->params[index].length + 1);
-        (*self->params_data)[index] = realloc((*self->params_data)[index], rounded_length);
-        bytes_readed += socket_read(client_fd, (*self->params_data)[index], rounded_length);  
         ++index;
     };
     return 0;
@@ -155,14 +166,16 @@ void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer, char*
     _dbus_save_length(stream_chunk, stream_pointer, betole(variable_header_length));
     char params_types[4] = { 0x6, 0x1, 0x2, 0x3};
     char params_data_types[4] = { 's', 'o', 's', 's'};
+    int order_mapping[4] = {1, 0, 2, 3};
     for (size_t i = 0; i < params_count; i++) {
-        (*stream_chunk)[(*stream_pointer)++] = params_types[i];
+        int index = order_mapping[i];
+        (*stream_chunk)[(*stream_pointer)++] = params_types[index];
         (*stream_chunk)[(*stream_pointer)++] = 0x1;
-        (*stream_chunk)[(*stream_pointer)++] = params_data_types[i];
+        (*stream_chunk)[(*stream_pointer)++] = params_data_types[index];
         (*stream_pointer)++; //  \0 after type
-        _dbus_save_length(stream_chunk, stream_pointer, betole(strlen((*params)[i])));
-        memcpy((*stream_chunk) + (*stream_pointer), (*params)[i], strlen((*params)[i]) + 1);
-        (*stream_pointer) += round_up_eigth(strlen((*params)[i]) + 1);
+        _dbus_save_length(stream_chunk, stream_pointer, betole(strlen((*params)[index])));
+        memcpy((*stream_chunk) + (*stream_pointer), (*params)[index], strlen((*params)[index]) + 1);
+        (*stream_pointer) += round_up_eigth(strlen((*params)[index]) + 1);
     }
 }
 
@@ -173,7 +186,7 @@ void _dbus_build_body(char** stream_chunk, int* stream_pointer, char*** signatur
     (*stream_chunk)[(*stream_pointer)++] = 0x1;
     (*stream_chunk)[(*stream_pointer)++] = 'g';
     (*stream_pointer)++; //  \0 after type
-    (*stream_chunk)[(*stream_pointer)++] = (method_params_count >> 24) & 0xFF;
+    (*stream_chunk)[(*stream_pointer)++] = method_params_count;
     for (size_t i = 0; i < method_params_count; i++) {
         (*stream_chunk)[(*stream_pointer)++] = 's';        
     }
