@@ -21,6 +21,7 @@ void dbus_init(dbus_data_t* self, char*** data, char*** body_data) {
     self->id = 1;
     self->type = 0;
     self->version = 0;
+    self->signature_count = 0;
 
 }
 
@@ -55,8 +56,8 @@ int _read_parameters(dbus_data_t* self, int client_fd) {
         if (self->params[index].type == 0x8) {
             char params_count;
             bytes_readed += socket_read(client_fd, &params_count, 1);
-            self->params_count = params_count;
-            int length_to_read = round_up_eigth(params_count + 1);
+            self->signature_count = params_count;
+            int length_to_read = round_up_eigth(params_count + 6) - 5; // 4 first bytes, 1 length, 1 \0 - already readed
             char params_types[length_to_read]; // para saltear los tipos de cada parametro ya q son string
             bytes_readed += socket_read(client_fd, params_types, length_to_read);
         }
@@ -77,13 +78,14 @@ int _read_parameters(dbus_data_t* self, int client_fd) {
 int dbus_read_body(dbus_data_t* self,int client_fd) {
     size_t static_size_to_read = 4;
     char buffer[static_size_to_read];
-    int bytes_readed = 0;
     int index = 0;
-    while (bytes_readed < self->body_length) {
-        bytes_readed += round_up_eigth(socket_read(client_fd, buffer, static_size_to_read));
-        unsigned int length = buffer[0]; 
-        (*self->body_data)[index] = realloc((*self->body_data)[index], length + 1);
-        bytes_readed += round_up_eigth(socket_read(client_fd, (*self->body_data)[index], length + 1));
+    while (index < self->signature_count) {
+        socket_read(client_fd, buffer, static_size_to_read);
+        int length = (index == (self->signature_count - 1)) 
+                            ? buffer[0] + 1
+                            : round_up_eigth(buffer[0] + 1); 
+        (*self->body_data)[index] = realloc((*self->body_data)[index], length);
+        socket_read(client_fd, (*self->body_data)[index], length);
         index++;
     }
     return 0;

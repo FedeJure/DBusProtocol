@@ -42,8 +42,8 @@ int _server_command_receive(server_t* self) {
     dbus_read_header(&data, client_fd);
 
     if (data.params_count > MAX_PARAMS_COUNT - 1) {
-        body_data = realloc(body_data, data.params[MAX_PARAMS_COUNT - 1].length * sizeof(char*));
-        for (size_t i = 0; i < data.params[MAX_PARAMS_COUNT - 1].length; i++) { 
+        body_data = realloc(body_data, data.signature_count * sizeof(char*));
+        for (size_t i = 0; i < data.signature_count; i++) { 
             body_data[i] = malloc(1); 
         }
         dbus_read_body(&data, client_fd);
