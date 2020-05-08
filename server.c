@@ -79,18 +79,20 @@ void _print_log(dbus_data_t* data ) {
 }
 
 void _write_variable_log(char** variable_log, dbus_data_t* data) {
-    if (data->params_count > MAX_PARAMS_COUNT - 1) {
+    if (data->signature_count > 0) {
         char* prefix = "\n* Parámetros:";
         *variable_log = realloc(*variable_log, strlen(prefix) + 1);
         memcpy(*variable_log, prefix, strlen(prefix) + 1);
-        for (size_t i = 0; i < data->params[MAX_PARAMS_COUNT-1].length; i++) {
-            size_t actual_size = strlen(*variable_log) + 1;
-            size_t new_size = actual_size + data->params[i].length + 1;
-            *variable_log = realloc(*variable_log, new_size);
+        for (size_t i = 0; i < data->signature_count; i++) {
             char* aux_prefix = "\n  * %s";
-            char* aux = malloc(data->params[i].length + strlen(aux_prefix) + 1);
+            size_t actual_size = strlen(*variable_log);
+            size_t data_size = strlen((*data->body_data)[i]);
+            size_t aux_prefix_size = strlen(aux_prefix);
+            size_t new_size = actual_size + data_size + aux_prefix_size +1;
+            *variable_log = realloc(*variable_log, new_size);
+            char* aux = malloc(data_size + aux_prefix_size + 1);
             sprintf(aux, aux_prefix, (*data->body_data)[i]);
-            memcpy(*variable_log, aux, strlen(aux) + 1);
+            memcpy(*variable_log + strlen(prefix), aux, data_size + aux_prefix_size + 1);
             free(aux);
         }
                 
