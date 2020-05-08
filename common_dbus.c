@@ -236,7 +236,7 @@ void _dbus_get_signature_method(char*** buffer, char** method_name, char*** sign
     _dbus_read_until_separator(method_name, &actual, &rest, "(");
     char** param;
     for (size_t i = 0; i < params_count - 1; i++) { 
-        param = &(*signature)[i];
+        param = &((*signature)[i]);
         _dbus_read_until_separator(param, &actual, &rest, ",");
     }
     param = &((*signature)[params_count - 1]);
@@ -258,4 +258,5 @@ void _dbus_read_until_separator(char** destination, char** pointer, char** rest,
         *destination = realloc(*destination, size);
         memset(*destination, 0, size);
         memcpy(*destination, *pointer, size);
+        *pointer += size;
 }
