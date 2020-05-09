@@ -15,7 +15,8 @@ void init_reader(reader_t* self, FILE* file, int bytes) {
 }
 
 
-void reader_next_buffer_in_same_line(reader_t* self, char* buffer, bool* line_break) {
+void reader_next_buffer_in_same_line(reader_t* self, char* buffer,
+                                    bool* line_break) {
     for (size_t i = 0; i < self->bytes_to_read; i++) {
         char readed = fgetc(self->file);
         if (readed == '\n') {

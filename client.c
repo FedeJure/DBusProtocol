@@ -33,22 +33,20 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     reader_t reader;
     init_reader(&reader, entry_file, BUFFER_SIZE);
     int id = 1;
-    while (reader.reading == true)
-    {
+    while (reader.reading == true) {
         _process_line(socket, &reader, &id);
         _receive_response(socket);
     }
-    
     socket_release(socket);
 
     return SUCCESS;
 }
 
 void _process_line(socket_t* socket, reader_t* reader, int* id) {
-    char** params = malloc(sizeof(char*) * PARAMS_COUNT);
+    char** params = malloc(__SIZEOF_WCHAR_T__ * PARAMS_COUNT);
     bool early_return = false;
     int params_count = PARAMS_COUNT;
-    for (size_t i = 0; i < params_count; i++){
+    for (size_t i = 0; i < params_count; i++) {
         params[i] = malloc(1);
         reader_next_buffer_until_space(reader, &params[i]);
         if (reader->reading == false || strlen(params[i]) <= 1) {
@@ -60,7 +58,8 @@ void _process_line(socket_t* socket, reader_t* reader, int* id) {
     }
     if (early_return == false) {
         char* stream = malloc(1);
-        size_t size = _dbus_build_stream(&stream, &params, params_count, (*id)++);
+        size_t size = _dbus_build_stream(&stream, &params,
+                                    params_count, (*id)++);
         socket_send(socket->fd, stream, size);
         free(stream);
     }

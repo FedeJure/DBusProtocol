@@ -1,8 +1,8 @@
 // Copyright [2020] <Federico Jure>
-#ifndef SERVER_H_
-#define SERVER_H_
 #include "./common_socket.h"
 #include "./common_dbus.h"
+#ifndef SERVER_H_
+#define SERVER_H_
 
 typedef struct {
     socket_t* socket;
