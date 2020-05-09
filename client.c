@@ -19,10 +19,10 @@ int start_client(char* address, char* service, FILE* entry_file) {
     fflush(stdout);
 
     socket_t socket;
-    if (socket_init(&socket) == -1) {
+    if (socket_init(&socket) == SOCKET_ERROR) {
         return ERROR;
     }
-    if (socket_connect(&socket, address, service) == ERROR) {
+    if (socket_connect(&socket, address, service) == SOCKET_ERROR) {
         return ERROR;
     }
 
@@ -34,7 +34,9 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     init_reader(&reader, entry_file, BUFFER_SIZE);
     int id = 1;
     while (reader.reading == true) {
-        _process_line(socket, &reader, id);
+        if (_process_line(socket, &reader, id) == ERROR) {
+            break;
+        };
         _receive_response(socket, id);
         id++;
     }
@@ -43,29 +45,33 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     return SUCCESS;
 }
 
-void _process_line(socket_t* socket, reader_t* reader, int id) {
+int _process_line(socket_t* socket, reader_t* reader, int id) {
     char** params = malloc(sizeof(char*) * PARAMS_COUNT);
-    bool early_return = false;
     int params_count = PARAMS_COUNT;
     for (size_t i = 0; i < params_count; i++) {
         params[i] = malloc(1);
         reader_next_buffer_until_space(reader, &params[i]);
         if (reader->reading == false || strlen(params[i]) <= 1) {
-            reader->reading = false;
-            early_return = true;
             params_count = i + 1;
-            break;
+            _release_params(&params, params_count);
+            return ERROR;
         }
     }
-    if (early_return == false) {
-        char* stream = malloc(1);
-        size_t size = _dbus_build_stream(&stream, &params,
-                                    params_count, id);
-        socket_send(socket->fd, stream, size);
+    char* stream = malloc(1);
+    size_t size = _dbus_build_stream(&stream, &params,
+                                params_count, id);
+    if (socket_send(socket->fd, stream, size) == SOCKET_ERROR) {
         free(stream);
+        return ERROR;
     }
-    for (size_t i = 0; i < params_count; i++) { free(params[i]); }
-    free(params);
+    free(stream);
+    _release_params(&params, params_count);
+    return SUCCESS;
+}
+
+void _release_params(char*** params, int count) {
+    for (size_t i = 0; i < count; i++) { free((*params)[i]); }
+    free(*params);
 }
 
 void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
@@ -76,4 +82,5 @@ void _receive_response(socket_t* socket, int id) {
     char response[3];
     socket_read(socket->fd, response, 3);
     printf("0x%08d: %s\n", id, response);
+    fflush(stdout);
 }
