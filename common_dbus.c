@@ -154,8 +154,6 @@ size_t _dbus_build_stream(char **stream, char ***params,
                        _dbus_get_body_length_no_padding_on_last(
                            &signature, method_params_count) +
                        round_up_eigth(header_size);
-  printf("\nsize static: %ld\nsize header: %ld\n size total: %ld\n",
-         static_size, header_size, stream_size);
   int stream_pointer = 0;
   *stream = realloc((*stream), stream_size);
   char *stream_chunk = *stream;
