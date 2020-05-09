@@ -35,7 +35,7 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     int id = 1;
     while (reader.reading == true) {
         _process_line(socket, &reader, &id);
-        _receive_response(socket);
+        _receive_response(socket, id);
     }
     socket_release(socket);
 
@@ -43,7 +43,7 @@ int _process_file(socket_t* socket, FILE* entry_file) {
 }
 
 void _process_line(socket_t* socket, reader_t* reader, int* id) {
-    char** params = malloc(__SIZEOF_WCHAR_T__ * PARAMS_COUNT);
+    char** params = malloc(sizeof(char*) * PARAMS_COUNT);
     bool early_return = false;
     int params_count = PARAMS_COUNT;
     for (size_t i = 0; i < params_count; i++) {
@@ -71,8 +71,8 @@ void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
     memcpy(to_send, *buffer, strlen(*buffer) + 1);
 }
 
-void _receive_response(socket_t* socket) {
+void _receive_response(socket_t* socket, int id) {
     char response[3];
     socket_read(socket->fd, response, 3);
-    printf("%s\n", response);
+    printf("0x%08d: %s\n", id, response);
 }
