@@ -32,10 +32,11 @@ int start_client(char* address, char* service, FILE* entry_file) {
 int _process_file(socket_t* socket, FILE* entry_file) {
     reader_t reader;
     init_reader(&reader, entry_file, BUFFER_SIZE);
-
+    int id = 1;
     while (reader.reading == true)
     {
-        _process_line(socket, &reader);        
+        _process_line(socket, &reader, &id);
+        _receive_response(socket);
     }
     
     socket_release(socket);
@@ -43,7 +44,7 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     return SUCCESS;
 }
 
-void _process_line(socket_t* socket, reader_t* reader) {
+void _process_line(socket_t* socket, reader_t* reader, int* id) {
     char** params = malloc(sizeof(char*) * PARAMS_COUNT);
     bool early_return = false;
     int params_count = PARAMS_COUNT;
@@ -59,8 +60,8 @@ void _process_line(socket_t* socket, reader_t* reader) {
     }
     if (early_return == false) {
         char* stream = malloc(1);
-        size_t size = _dbus_build_stream(&stream, &params, params_count, 1);
-        _send_message(socket, stream, size);
+        size_t size = _dbus_build_stream(&stream, &params, params_count, (*id)++);
+        socket_send(socket->fd, stream, size);
         free(stream);
     }
     for (size_t i = 0; i < params_count; i++) { free(params[i]); }
@@ -71,6 +72,8 @@ void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
     memcpy(to_send, *buffer, strlen(*buffer) + 1);
 }
 
-void _send_message(socket_t* socket, char* to_send, size_t size) {
-    socket_send(socket->fd, to_send, size);
+void _receive_response(socket_t* socket) {
+    char response[3];
+    socket_read(socket->fd, response, 3);
+    printf("%s\n", response);
 }

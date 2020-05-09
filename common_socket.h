@@ -3,6 +3,9 @@
 #define COMMON_SOCKET_H_
 #include <stdlib.h>
 
+#define SOCKET_ERROR -1
+#define SOCKET_SUCCESS 0
+
 typedef struct socket {
     int fd;
     char* service;

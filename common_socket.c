@@ -19,19 +19,17 @@
 #define ALLOWED_CONNECTIONS 1
 #define BUFFER_SIZE 30
 
-#define ERROR -1
-#define SUCCESS 0
 
 int socket_init(socket_t* self) {
     self->fd = socket(AF_INET, SOCK_STREAM, 0);
-    return SUCCESS;
+    return SOCKET_SUCCESS;
 }
 
 int socket_release(socket_t* self) {
     shutdown(self->fd, SHUT_RDWR);
     close(self->fd);
     self->fd = -1;
-    return SUCCESS;
+    return SOCKET_SUCCESS;
 }
 
 int socket_connect(socket_t* self, const char* address, char* service) {
@@ -43,7 +41,7 @@ int socket_connect(socket_t* self, const char* address, char* service) {
 
     res = getaddrinfo(address, service, &hints, &ai_list);
 
-    if (res < 0 ) return ERROR;
+    if (res < 0 ) return SOCKET_ERROR;
 
     for (ptr = ai_list; (void*)ptr != NULL; ptr = ptr->ai_next) {
         ip4addr.sin_addr.s_addr = *((uint32_t*) &
@@ -56,7 +54,7 @@ int socket_connect(socket_t* self, const char* address, char* service) {
         }
     }
 
-    return SUCCESS;
+    return SOCKET_SUCCESS;
 }
 
 int socket_listen(socket_t* self, char* service) {
@@ -68,14 +66,14 @@ int socket_listen(socket_t* self, char* service) {
     int binded = bind(self->fd, (const struct sockaddr*)&ip4addr,
         sizeof(ip4addr));
     if (binded == -1) {
-        return ERROR;
+        return SOCKET_ERROR;
     }
 
     int listened = listen(self->fd, ALLOWED_CONNECTIONS);
     if (listened < 0) {
-        return ERROR;
+        return SOCKET_ERROR;
     }
-    return SUCCESS;
+    return SOCKET_SUCCESS;
 }
 
 int socket_accept(socket_t* self, int* client_fd, char* service) {
@@ -87,10 +85,10 @@ int socket_accept(socket_t* self, int* client_fd, char* service) {
     int accepted = accept(self->fd, (struct sockaddr*) &ip4addr,
         (socklen_t*)&socket_size);
     if (accepted < -1) {
-        return ERROR;
+        return SOCKET_ERROR;
     }
     *client_fd = accepted;
-    return SUCCESS;
+    return SOCKET_SUCCESS;
 }
 
 int socket_read(int client_fd, char* buffer, int size) {
@@ -98,8 +96,8 @@ int socket_read(int client_fd, char* buffer, int size) {
     while (readed_size < size) {
         int res = recv(client_fd, (void*)&buffer[readed_size],
             size-readed_size, 0);
-        if (res < 0 || res == 0) {
-            return ERROR;
+        if (res <= 0) {
+            return SOCKET_ERROR;
         }
         readed_size+=res;
     }
@@ -113,7 +111,7 @@ int socket_send(int socket_fd, const char* buffer, int length) {
         int sended = send(socket_fd, &buffer[sent], (size_t)length-sent,
             MSG_NOSIGNAL);
         if (sended < 0) {
-            return ERROR;
+            return SOCKET_ERROR;
         }
         sent += sended;
     }
@@ -129,7 +127,7 @@ int socket_send_next_length(int fd, int length) {
 int socket_read_next_length(int fd) {
     uint32_t network_length;
     if (socket_read(fd, (char*)&network_length, 4) < 0) {
-        return ERROR;
+        return SOCKET_ERROR;
     };
     return (int)ntohl(network_length);
 }

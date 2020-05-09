@@ -3,6 +3,8 @@
 #define COMMON_DBUS_H_
 
 #define MAX_PARAMS_COUNT 5
+#define DBUS_ERROR -1
+#define DBUS_SUCCESS 0
 
 typedef struct params {
     char type;
@@ -35,7 +37,6 @@ int dbus_get_param_size();
 void dbus_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_get_max_params_count();
 int round_up_eigth(int to_round);
-int _read_next_parameter(int client_fd, char* buffer, int size);
 size_t _dbus_build_stream(char** stream, char*** params, unsigned int params_count, unsigned int id);
 int _dbus_get_body_length_no_padding_on_last(char*** params, int count);
 int _dbus_get_header_length_no_padding_on_last(char*** params, int count, int signature_count);

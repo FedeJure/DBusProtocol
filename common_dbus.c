@@ -26,14 +26,14 @@ void dbus_init(dbus_data_t* self, char*** data, char*** body_data) {
 }
 
 int dbus_read_header(dbus_data_t* self, int client_fd) {
-    _read_header_general_data(self, client_fd);
-    _read_parameters(self, client_fd);
-    return 0;
+    if (_read_header_general_data(self, client_fd) == DBUS_ERROR) { return DBUS_ERROR; }
+    if (_read_parameters(self, client_fd) == DBUS_ERROR) { return DBUS_ERROR; }
+    return DBUS_SUCCESS;
 }
 
 int _read_header_general_data(dbus_data_t* self, int client_fd) {
     char buffer[dbus_get_static_size()];
-    socket_read(client_fd, buffer, dbus_get_static_size());
+    if (socket_read(client_fd, buffer, dbus_get_static_size()) < 0) { return DBUS_ERROR; };
     self->endianess = buffer[0];
     self->type = buffer[1];
     self->flag = buffer[2];
@@ -41,7 +41,7 @@ int _read_header_general_data(dbus_data_t* self, int client_fd) {
     self->body_length = (unsigned int) buffer[4];
     self->id = (unsigned int) buffer[4 + sizeof(int)];
     self->array_length = ((unsigned int) buffer[4 + 2 * sizeof(int)]);
-    return 0;
+    return DBUS_SUCCESS;
 }
 
 int _read_parameters(dbus_data_t* self, int client_fd) {
@@ -50,29 +50,39 @@ int _read_parameters(dbus_data_t* self, int client_fd) {
     int bytes_readed = 0;
     while (bytes_readed < round_up_eigth(self->array_length)) {
         char buffer[static_size_to_read];
-        bytes_readed += socket_read(client_fd, buffer, static_size_to_read);
+        int readed = socket_read(client_fd, buffer, static_size_to_read);
+        if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
+        bytes_readed += readed;
         self->params[index].type = buffer[0];
         self->params[index].data_type = buffer[2];
         if (self->params[index].type == 0x8) {
             char params_count;
-            bytes_readed += socket_read(client_fd, &params_count, 1);
+            readed = socket_read(client_fd, &params_count, 1);
+            if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
+            bytes_readed += readed;
             self->signature_count = params_count;
             int length_to_read = round_up_eigth(params_count + 6) - 5; // 4 first bytes, 1 length, 1 \0 - already readed
             char params_types[length_to_read]; // para saltear los tipos de cada parametro ya q son string
-            bytes_readed += socket_read(client_fd, params_types, length_to_read);
+            readed = socket_read(client_fd, params_types, length_to_read);
+            if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
+            bytes_readed += readed;
         }
         else {
             char readed_length[static_size_to_read];
-            bytes_readed += socket_read(client_fd, readed_length, static_size_to_read);
+            readed = socket_read(client_fd, readed_length, static_size_to_read);
+            if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
+            bytes_readed += readed;
             self->params[index].length = (unsigned int)readed_length[0];
             int rounded_length = round_up_eigth(self->params[index].length + 1);
             (*self->params_data)[index] = realloc((*self->params_data)[index], rounded_length);
-            bytes_readed += socket_read(client_fd, (*self->params_data)[index], rounded_length);  
+            readed = socket_read(client_fd, (*self->params_data)[index], rounded_length);
+            if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
+            bytes_readed += readed;
         }
         self->params_count++;
         ++index;
     };
-    return 0;
+    return DBUS_SUCCESS;
 }
 
 int dbus_read_body(dbus_data_t* self,int client_fd) {
@@ -80,21 +90,15 @@ int dbus_read_body(dbus_data_t* self,int client_fd) {
     char buffer[static_size_to_read];
     int index = 0;
     while (index < self->signature_count) {
-        socket_read(client_fd, buffer, static_size_to_read);
+        if (socket_read(client_fd, buffer, static_size_to_read) == SOCKET_ERROR) { return DBUS_ERROR; }
         int length = (index == (self->signature_count - 1)) 
                             ? buffer[0] + 1
                             : round_up_eigth(buffer[0] + 1); 
         (*self->body_data)[index] = realloc((*self->body_data)[index], length);
-        socket_read(client_fd, (*self->body_data)[index], length);
+        if (socket_read(client_fd, (*self->body_data)[index], length) == SOCKET_ERROR) { return DBUS_ERROR; }
         index++;
     }
-    return 0;
-}
-
-int _read_next_parameter(int client_fd, char* buffer, int size) {
-    memset(&buffer, 0, size);
-    return socket_read(client_fd, buffer, size);
-
+    return DBUS_SUCCESS;
 }
 
 int dbus_get_static_size() {
@@ -222,7 +226,6 @@ int _dbus_get_header_length_no_padding_on_last(char*** params, int count, int si
         length += ((i == count - 1) && (signature_count == 0) ) 
             ? length_and_data :
             round_up_eigth(length_and_data);
-        printf("\nparam: %s ,%ld",(*params)[i], length);
     }
     if (signature_count > 0) {
         length += round_up_eigth(sizeof(__uint32_t) + (2 + signature_count));
