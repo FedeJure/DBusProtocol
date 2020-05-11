@@ -12,3 +12,7 @@ void save_decimal_as_bytes(char **dest, __uint32_t num) {
   (*dest)[2] = (num >> 8) & 0xFF;
   (*dest)[3] = num & 0xFF;
 }
+
+int get_int_from_char_array(char* array) {
+  return ((array[3] << 24) | (array[2] << 16) | (array[1] << 8) | array[0]) & 0xFF;
+}

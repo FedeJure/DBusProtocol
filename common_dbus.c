@@ -45,9 +45,8 @@ int _read_header_general_data(dbus_data_t *self, int client_fd) {
   self->flag = buffer[2];
   self->version = buffer[3];
   self->body_length = (unsigned int)buffer[READ_SIZE_4];
-  self->id = (unsigned int)buffer[READ_SIZE_4 + sizeof(client_fd)];
-  self->array_length = ((unsigned int)buffer[READ_SIZE_4
-                        + 2 * sizeof(client_fd)]);
+  self->id = (unsigned int)buffer[READ_SIZE_4 * 2];
+  self->array_length = get_int_from_char_array(&buffer[READ_SIZE_4 * 3]);
   return DBUS_SUCCESS;
 }
 
@@ -145,7 +144,7 @@ size_t _dbus_build_stream(char **stream, char ***params,
 
   char *method_name = malloc(1);
   _dbus_get_signature_method(params, &method_name, &signature,
-                             method_params_count);
+                              method_params_count);
 
   size_t static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
   size_t header_size = _dbus_get_header_length_no_padding_on_last(
