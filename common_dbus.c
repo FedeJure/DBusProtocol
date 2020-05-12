@@ -10,7 +10,6 @@
 void dbus_init(dbus_data_t *self, char ***data, char ***body_data) {
   for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) {
     self->params[i].type = 0x00;
-    self->params[i].length = 0;
     self->params[i].data_type = 0x00;
   }
   self->body_data = body_data;
@@ -83,8 +82,8 @@ int _dbus_read_common_param(dbus_data_t *self, int index, int client_fd,
   if (param_length == DBUS_ERROR) {
     return DBUS_ERROR;
   }
-  self->params[index].length = param_length;
-  _dbus_read_param_data_of_stream(self, client_fd, index, bytes_readed);
+  _dbus_read_param_data_of_stream(self, client_fd, index, bytes_readed,
+                                  param_length + 1);
 
  return DBUS_SUCCESS;
 }
@@ -122,8 +121,8 @@ int _dbus_read_length_of_stream(int client_fd, int* bytes_readed) {
 }
 
 int _dbus_read_param_data_of_stream(dbus_data_t *self, int client_fd,
-                                    int index, int* bytes_readed) {
-  int rounded_length = round_up_eigth(self->params[index].length + 1);
+                                    int index, int* bytes_readed, int length) {
+  int rounded_length = round_up_eigth(length);
   (*self->params_data)[index] =
     realloc((*self->params_data)[index], rounded_length);
   int readed =

@@ -66,5 +66,5 @@ int _dbus_read_common_param(dbus_data_t *self, int index,
                         int client_fd, int* bytes_readed);
 int _dbus_read_length_of_stream(int client_fd, int* bytes_readed);
 int _dbus_read_param_data_of_stream(dbus_data_t *self, int client_fd,
-                                    int index, int* bytes_readed);
+                                    int index, int* bytes_readed, int length);
 #endif  // COMMON_DBUS_H_

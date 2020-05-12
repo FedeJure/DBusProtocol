@@ -70,7 +70,7 @@ int _server_command_receive(server_t *self, int client_fd) {
     free(params_data[i]);
   }
   if (data.params_count > 4) {
-    for (size_t i = 0; i < data.params[MAX_PARAMS_COUNT - 1].length; i++) {
+    for (size_t i = 0; i < data.signature_count; i++) {
       free(body_data[i]);
     }
   }
