@@ -23,7 +23,6 @@ typedef struct dbus {
     unsigned int body_length;
     unsigned int id;
     unsigned int array_length;
-    unsigned int params_count;
     dbus_params_t params[MAX_PARAMS_COUNT];
     char*** params_data;
     char*** body_data;

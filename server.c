@@ -50,7 +50,7 @@ int _server_command_receive(server_t *self, int client_fd) {
     return SERVER_ERROR;
   }
 
-  if (data.params_count > MAX_PARAMS_COUNT - 1) {
+  if (data.signature_count > 0) {
     body_data = realloc(body_data, data.signature_count * sizeof(char *));
     for (size_t i = 0; i < data.signature_count; i++) {
       body_data[i] = malloc(1);
@@ -69,7 +69,7 @@ int _server_command_receive(server_t *self, int client_fd) {
   for (size_t i = 0; i < dbus_get_max_params_count(); i++) {
     free(params_data[i]);
   }
-  if (data.params_count > 4) {
+  if (data.signature_count > 0) {
     for (size_t i = 0; i < data.signature_count; i++) {
       free(body_data[i]);
     }

@@ -14,7 +14,6 @@ void dbus_init(dbus_data_t *self, char ***data, char ***body_data) {
   }
   self->body_data = body_data;
   self->params_data = data;
-  self->params_count = 0;
   self->body_length = 0;
   self->endianess = 'l';
   self->flag = 0x00;
@@ -70,7 +69,6 @@ int _read_parameters(dbus_data_t *self, int client_fd) {
                           &bytes_readed);
     }
     if (internal_return == DBUS_ERROR) { return DBUS_ERROR; }
-    self->params_count++;
     ++index;
   };
   return DBUS_SUCCESS;
