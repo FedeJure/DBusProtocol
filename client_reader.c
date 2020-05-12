@@ -14,26 +14,8 @@ void init_reader(reader_t* self, FILE* file, int bytes) {
     self->reading = true;
 }
 
-
-void reader_next_buffer_in_same_line(reader_t* self, char* buffer,
-                                    bool* line_break) {
-    for (size_t i = 0; i < self->bytes_to_read; i++) {
-        char readed = fgetc(self->file);
-        if (readed == '\n') {
-            *line_break = true;
-            buffer[i] = EOF;
-        }
-        if (readed == EOF) {
-            self->reading = false;
-            *line_break = true;
-        }
-        if (*line_break == false && self->reading == true) {
-            buffer[i] = readed;
-        }
-    }
-}
-
 void reader_next_buffer_until_space(reader_t* self, char** buffer) {
+    bool open_comma = false;
     size_t size = self->bytes_to_read;
     *buffer = realloc(*buffer, size);
     memset(*buffer, 0, size);
@@ -42,15 +24,24 @@ void reader_next_buffer_until_space(reader_t* self, char** buffer) {
     bool keep_reading = true;
     while (keep_reading == true) {
         readed = fgetc(self->file);
-        if (strlen(*buffer) >= size) {
+        if (index >= size - 1) {
             size = size + self->bytes_to_read;
             *buffer = realloc(*buffer, size);
+        }
+        if (readed != ' ' && open_comma == true) {
+            open_comma = false;
+        }
+        if (readed == ',') {
+            open_comma = true;
+        }
+        if (readed == ' ' && open_comma == true) {
+            continue;
         }
         if (readed == EOF) {
             self->reading = false;
             keep_reading = false;
         }
-        if (_reader_stop_reading_line_condition(readed) == true) {
+        if (readed == '\n' || readed == ' ') {
             keep_reading = false;
             continue;
         }
@@ -60,5 +51,5 @@ void reader_next_buffer_until_space(reader_t* self, char** buffer) {
 }
 
 bool _reader_stop_reading_line_condition(char c) {
-    return c == '\n' || c == ' ';
+    return c == '\n';
 }

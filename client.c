@@ -51,7 +51,7 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
     for (size_t i = 0; i < params_count; i++) {
         params[i] = malloc(1);
         reader_next_buffer_until_space(reader, &params[i]);
-        if (reader->reading == false || strlen(params[i]) <= 1) {
+        if (reader->reading == false || strlen(params[i]) < 1) {
             params_count = i + 1;
             _release_params(&params, params_count);
             return ERROR;
@@ -81,6 +81,6 @@ void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
 void _receive_response(socket_t* socket, int id) {
     char response[3];
     socket_read(socket->fd, response, 3);
-    printf("0x%08d: %s\n", id, response);
+    printf("0x%08x: %s\n", id, response);
     fflush(stdout);
 }

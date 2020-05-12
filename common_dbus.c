@@ -136,7 +136,8 @@ int round_up_eigth(int to_round) {
 
 size_t _dbus_build_stream(char **stream, char ***params,
                           unsigned int params_count, unsigned int id) {
-  int method_params_count = _dbus_get_method_params_count((*params)[3]);
+  char* complete_method = (*params)[3];
+  int method_params_count = _dbus_get_method_params_count(complete_method, strlen(complete_method));
   char **signature = malloc(method_params_count * sizeof(char *));
   for (size_t i = 0; i < method_params_count; i++) {
     signature[i] = malloc(1);
@@ -144,7 +145,7 @@ size_t _dbus_build_stream(char **stream, char ***params,
 
   char *method_name = malloc(1);
   _dbus_get_signature_method(params, &method_name, &signature,
-                              method_params_count);
+                method_params_count);
 
   size_t static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
   size_t header_size = _dbus_get_header_length_no_padding_on_last(
@@ -245,6 +246,7 @@ void _dbus_build_body(char **stream_chunk, int *stream_pointer,
 
 int _dbus_get_body_length_no_padding_on_last(char ***signature, int count) {
   size_t length = 0;
+  if (count == 0) return length;
   for (size_t i = 0; i < count - 1; i++) {
     length += sizeof(__uint32_t);
     length += round_up_eigth(strlen((*signature)[i]) + 1);
@@ -273,6 +275,7 @@ void _dbus_get_signature_method(char ***buffer, char **method_name,
   char *rest = (*buffer)[3];
   char *actual;
   _dbus_read_until_separator(method_name, &actual, &rest, "(");
+  if (params_count == 0) return;
   char **param;
   for (size_t i = 0; i < params_count - 1; i++) {
     param = &((*signature)[i]);
@@ -282,9 +285,10 @@ void _dbus_get_signature_method(char ***buffer, char **method_name,
   _dbus_read_until_separator(param, &actual, &rest, ")");
 }
 
-int _dbus_get_method_params_count(char *method) {
+int _dbus_get_method_params_count(char* method, size_t length) {
   int comma_count = 0;
-  for (size_t i = 0; i < strlen(method); i++) {
+  for (size_t i = 0; i < length; i++) {
+    if (method[i] == ')' && method[i-1] == '(') return 0;
     comma_count += method[i] == ',' ? 1 : 0;
   }
   return comma_count + 1;

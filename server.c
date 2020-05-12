@@ -80,11 +80,11 @@ int _server_command_receive(server_t *self, int client_fd) {
 }
 
 void _print_log(dbus_data_t *data) {
-  char *static_log = "* Id: 0x%08d\n"
+  char *static_log = "* Id: 0x%08x\n"
                      "* Destino: %s\n"
                      "* Path: %s\n"
                      "* Interfaz: %s\n"
-                     "* Método: %s%s\n";
+                     "* Método: %s%s\n\n";
 
   char *variable_log = malloc(1);
   memset(variable_log, 0, 1);
@@ -101,9 +101,9 @@ void _write_variable_log(char **variable_log, dbus_data_t *data) {
     char *prefix = "\n* Parámetros:";
     *variable_log = realloc(*variable_log, strlen(prefix) + 1);
     memcpy(*variable_log, prefix, strlen(prefix) + 1);
-    size_t actual_size = strlen(*variable_log);
+    size_t actual_size = strlen(*variable_log) + 1;
     for (size_t i = 0; i < data->signature_count; i++) {
-      char *aux_prefix = "\n  * %s";
+      char *aux_prefix = "\n    * %s";
       size_t data_size = strlen((*data->body_data)[i]);
       size_t aux_prefix_size = strlen(aux_prefix);
       char *aux = malloc(data_size + aux_prefix_size + 1);
@@ -117,4 +117,5 @@ void _write_variable_log(char **variable_log, dbus_data_t *data) {
       free(aux);
     }
   }
+  
 }

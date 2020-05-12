@@ -55,7 +55,7 @@ void _dbus_build_body(char** stream_chunk, int* stream_pointer,
                         char*** signature, int method_params_count);
 void _dbus_get_signature_method(char*** buffer, char** method_name,
                         char*** signature, int params_count);
-int _dbus_get_method_params_count(char* method);
+int _dbus_get_method_params_count(char* method, size_t length);
 void _dbus_read_until_separator(char** destination, char** pointer,
                                 char** rest, char* delim);
 void _dbus_save_length(char** stream_chunk, int* stream_pointer,
