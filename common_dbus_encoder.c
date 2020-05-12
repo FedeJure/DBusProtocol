@@ -8,42 +8,75 @@
 #define READ_SIZE_4 4
 #define METHOD_PARAM_TYPE 0x8
 
-size_t _dbus_encoder_build_stream(char **stream, char ***params,
+/*=================================PUBLIC=====================================*/
+
+size_t dbus_encoder_build_stream(char **stream, char ***params,
                           unsigned int params_count, unsigned int id) {
   char* complete_method = (*params)[METHOD_PARAM];
-  int method_params_count = _dbus_encoder_get_method_params_count(complete_method, strlen(complete_method));
-  char **signature = malloc(method_params_count * sizeof(char *));
-  for (size_t i = 0; i < method_params_count; i++) { signature[i] = malloc(1); }
+  int signature_count = _dbus_encoder_get_method_params_count(
+                          complete_method, strlen(complete_method));
+  char **signature = malloc(signature_count * sizeof(char *));
+  for (size_t i = 0; i < signature_count; i++) { signature[i] = malloc(1); }
 
   char *method_name = malloc(1);
   _dbus_encoder_get_signature_method(params, &method_name, &signature,
-                method_params_count);
+                signature_count);
 
-  size_t static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
-  size_t header_size = _dbus_encoder_get_header_length_no_padding_on_last(
-      params, params_count, method_params_count);
-  size_t stream_size = static_size +
+  size_t static_size, header_size, stream_size;
+  _dbus_encoder_calculate_sizes(&static_size, &header_size, &stream_size,
+                  params, params_count, signature_count, signature);
+
+  _dbus_encoder_build_stream(stream, stream_size, signature, signature_count,
+                              params, params_count, header_size, id);
+
+  for (size_t i = 0; i < signature_count; i++) {
+    free(signature[i]);
+  }
+  free(signature);
+  free(method_name);
+  return stream_size;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*=================================PRIVATE====================================*/
+
+void _dbus_encoder_calculate_sizes(size_t* static_size, size_t* header_size,
+                                  size_t* stream_size, char*** params,
+                                  int params_count, int signature_count,
+                                  char** signature) {
+  *static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
+  *header_size = _dbus_encoder_get_header_length_no_padding_on_last(
+      params, params_count, signature_count);
+  *stream_size = *static_size +
                        _dbus_encoder_get_body_length_no_padding_on_last(
-                           &signature, method_params_count) +
-                       round_up_eigth(header_size);
+                           &signature, signature_count) +
+                       round_up_eigth(*header_size);
+}
+
+void _dbus_encoder_build_stream(char** stream, size_t stream_size,
+                            char** signature, int signature_count,
+                            char*** params, int params_count,
+                            size_t header_size, __uint32_t id) {
   int stream_pointer = 0;
   *stream = realloc((*stream), stream_size);
   char *stream_chunk = *stream;
   memset(stream_chunk, 0, stream_size);
 
   _dbus_encoder_build_static_header(&stream_chunk, &stream_pointer, &signature,
-                            method_params_count, id);
+                            signature_count, id);
   _dbus_encoder_build_variable_header(&stream_chunk, &stream_pointer, params,
                               params_count, header_size);
   _dbus_encoder_build_body(&stream_chunk, &stream_pointer, &signature,
-                   method_params_count);
-
-  for (size_t i = 0; i < method_params_count; i++) {
-    free(signature[i]);
-  }
-  free(signature);
-  free(method_name);
-  return stream_size;
+                   signature_count);
 }
 
 void _dbus_encoder_build_static_header(char **stream_chunk, int *stream_pointer,
@@ -69,9 +102,9 @@ void _dbus_encoder_save_length(char **stream_chunk, int *stream_pointer,
   free(aux);
 }
 
-void _dbus_encoder_build_variable_header(char **stream_chunk, int *stream_pointer,
-                                 char ***params, int params_count,
-                                 int variable_header_length) {
+void _dbus_encoder_build_variable_header(char **stream_chunk,
+                      int *stream_pointer, char ***params,
+                      int params_count, int variable_header_length) {
   _dbus_encoder_save_length(stream_chunk, stream_pointer,
                     betole(variable_header_length));
   char params_types[READ_SIZE_4] = {0x6, 0x1, 0x2, 0x3};
@@ -127,7 +160,8 @@ int _dbus_encoder_build_body_header(char **stream_chunk, int *stream_pointer,
   return DBUS_SUCCESS;
 }
 
-int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature, int count) {
+int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
+                                                    int count) {
   size_t length = 0;
   if (count == 0) return length;
   for (size_t i = 0; i < count - 1; i++) {
@@ -138,8 +172,8 @@ int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature, int coun
   return length + sizeof(__uint32_t);
 }
 
-int _dbus_encoder_get_header_length_no_padding_on_last(char ***params, int count,
-                                               int signature_count) {
+int _dbus_encoder_get_header_length_no_padding_on_last(char ***params,
+                                        int count, int signature_count) {
   size_t length = 0;
   for (size_t i = 0; i < count; i++) {
     size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
@@ -177,8 +211,8 @@ int _dbus_encoder_get_method_params_count(char* method, size_t length) {
   return comma_count + 1;
 }
 
-void _dbus_encoder_read_until_separator(char **destination, char **pointer, char **rest,
-                                char *delim) {
+void _dbus_encoder_read_until_separator(char **destination, char **pointer,
+                                        char **rest, char *delim) {
   *pointer = __strtok_r(*rest, delim, rest);
   size_t size = *rest - *pointer;
   *destination = realloc(*destination, size);

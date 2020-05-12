@@ -12,6 +12,8 @@
 #define SERVER_SUCCESS 0
 #define BUFFER_SIZE 32
 
+/*=================================PUBLIC=====================================*/
+
 int start_server(char *service) {
   fflush(stdout);
   socket_t socket;
@@ -37,6 +39,11 @@ int start_server(char *service) {
 
   return SERVER_SUCCESS;
 }
+
+
+
+
+/*=================================PRIVATE=====================================*/
 
 int _server_command_receive(server_t *self, int client_fd) {
   dbus_data_t data;

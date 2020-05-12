@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "./client_reader.h"
+#include "./client_file_reader.h"
 
 #define READING 1
 #define NOT_READING 0

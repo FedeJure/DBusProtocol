@@ -14,8 +14,23 @@ typedef enum dbus_params {
     METHOD_PARAM
 } dbus_params_index;
 
-size_t _dbus_encoder_build_stream(char** stream, char*** params,
+/*=================================PUBLIC=====================================*/
+
+size_t dbus_encoder_build_stream(char** stream, char*** params,
                         unsigned int params_count, unsigned int id);
+
+
+
+/*================================PRIVATE=====================================*/
+
+void _dbus_encoder_calculate_sizes(size_t* static_size, size_t* header_size,
+                                  size_t* stream_size, char*** params,
+                                  int params_count, int signature_count,
+                                  char** signature);
+void _dbus_encoder_build_stream(char** stream, size_t stream_size,
+                            char** signature, int signature_count,
+                            char*** params, int params_count,
+                            size_t header_size, __uint32_t id);
 int _dbus_encoder_get_body_length_no_padding_on_last(char*** params, int count);
 int _dbus_encoder_get_header_length_no_padding_on_last(char*** params,
                         int count, int signature_count);

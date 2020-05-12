@@ -30,8 +30,13 @@ typedef struct dbus {
 } dbus_data_t;
 
 
+/*=================================PUBLIC=====================================*/
 
 int dbus_decoder_read_header(dbus_data_t* self, int client_fd);
+
+
+/*=================================PRIVATE=====================================*/
+
 int _dbus_decoder_read_header_general_data(dbus_data_t* self, int client_fd);
 int _dbus_decoder_read_parameters(dbus_data_t* self, int client_fd);
 int dbus_decoder_read_body(dbus_data_t* self, int client_fd);

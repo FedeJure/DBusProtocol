@@ -5,7 +5,7 @@
 #include <strings.h>
 #include <netinet/in.h>
 #include "./client.h"
-#include "./client_reader.h"
+#include "./client_file_reader.h"
 #include "./common_socket.h"
 #include "./common_dbus_encoder.h"
 
@@ -14,6 +14,7 @@
 
 #define BUFFER_SIZE 32
 #define PARAMS_COUNT 4
+/*=================================PUBLIC=====================================*/
 
 int start_client(char* address, char* service, FILE* entry_file) {
     fflush(stdout);
@@ -28,6 +29,11 @@ int start_client(char* address, char* service, FILE* entry_file) {
 
     return _process_file(&socket, entry_file);
 }
+
+
+
+/*=================================PRIVATE=====================================*/
+
 
 int _process_file(socket_t* socket, FILE* entry_file) {
     reader_t reader;
@@ -53,7 +59,7 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
         return ERROR;
     }
     char* stream = malloc(1);
-    size_t size = _dbus_encoder_build_stream(&stream, &params,
+    size_t size = dbus_encoder_build_stream(&stream, &params,
                                 params_count, id);
     if (socket_send(socket->fd, stream, size) == SOCKET_ERROR) {
         free(stream);

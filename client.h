@@ -2,10 +2,16 @@
 #ifndef CLIENT_H_
 #define CLIENT_H_
 #include "./common_socket.h"
-#include "./client_reader.h"
+#include "./client_file_reader.h"
 
+/*=================================PUBLIC=====================================*/
 
 int start_client(char* address, char* service, FILE* entry_file);
+
+
+
+/*=================================PRIVATE=====================================*/
+
 int _process_file(socket_t* socket, FILE* entry_file);
 void _process_buffer(socket_t* socket, char** buffer, char* to_send);
 int _process_line(socket_t* socket, reader_t* reader, int id);
