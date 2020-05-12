@@ -6,7 +6,7 @@
 #include <string.h>
 #include <strings.h>
 #include "./server.h"
-#include "./common_dbus.h"
+#include "./common_dbus_decoder.h"
 
 #define SERVER_ERROR 1
 #define SERVER_SUCCESS 0
@@ -45,8 +45,8 @@ int _server_command_receive(server_t *self, int client_fd) {
   for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) {
     params_data[i] = malloc(1);
   }
-  dbus_init(&data, &params_data, &body_data);
-  if (dbus_read_header(&data, client_fd) == DBUS_ERROR) {
+  dbus_decoder_init(&data, &params_data, &body_data);
+  if (dbus_decoder_read_header(&data, client_fd) == DBUS_ERROR) {
     return SERVER_ERROR;
   }
 
@@ -55,7 +55,7 @@ int _server_command_receive(server_t *self, int client_fd) {
     for (size_t i = 0; i < data.signature_count; i++) {
       body_data[i] = malloc(1);
     }
-    if (dbus_read_body(&data, client_fd) == DBUS_ERROR) {
+    if (dbus_decoder_read_body(&data, client_fd) == DBUS_ERROR) {
       return SERVER_ERROR;
     }
   }
@@ -66,7 +66,7 @@ int _server_command_receive(server_t *self, int client_fd) {
   if (socket_send(client_fd, response, strlen(response) + 1) == SOCKET_ERROR) {
     return SERVER_ERROR;
   }
-  for (size_t i = 0; i < dbus_get_max_params_count(); i++) {
+  for (size_t i = 0; i < dbus_decoder_get_max_params_count(); i++) {
     free(params_data[i]);
   }
   if (data.signature_count > 0) {

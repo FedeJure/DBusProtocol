@@ -7,7 +7,7 @@
 #include "./client.h"
 #include "./client_reader.h"
 #include "./common_socket.h"
-#include "./common_dbus.h"
+#include "./common_dbus_encoder.h"
 
 #define ERROR 1
 #define SUCCESS 0
@@ -53,7 +53,7 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
         return ERROR;
     }
     char* stream = malloc(1);
-    size_t size = _dbus_build_stream(&stream, &params,
+    size_t size = _dbus_encoder_build_stream(&stream, &params,
                                 params_count, id);
     if (socket_send(socket->fd, stream, size) == SOCKET_ERROR) {
         free(stream);
