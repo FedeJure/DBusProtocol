@@ -48,14 +48,9 @@ int _process_file(socket_t* socket, FILE* entry_file) {
 int _process_line(socket_t* socket, reader_t* reader, int id) {
     char** params = malloc(sizeof(char*) * PARAMS_COUNT);
     int params_count = PARAMS_COUNT;
-    for (size_t i = 0; i < params_count; i++) {
-        params[i] = malloc(1);
-        reader_next_buffer_until_space(reader, &params[i]);
-        if (reader->reading == false || strlen(params[i]) < 1) {
-            params_count = i + 1;
-            _release_params(&params, params_count);
-            return ERROR;
-        }
+    if (_extract_params_of_line(&params, &params_count, reader) == ERROR) {
+        _release_params(&params, params_count);
+        return ERROR;
     }
     char* stream = malloc(1);
     size_t size = _dbus_build_stream(&stream, &params,
@@ -66,6 +61,19 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
     }
     free(stream);
     _release_params(&params, params_count);
+    return SUCCESS;
+}
+
+int _extract_params_of_line(char*** dest_params, int* params_count,
+                            reader_t* reader) {
+    for (size_t i = 0; i < *params_count; i++) {
+        (*dest_params)[i] = malloc(1);
+        reader_next_buffer_until_space(reader, &(*dest_params)[i]);
+        if (reader->reading == false || strlen((*dest_params)[i]) < 1) {
+            *params_count = i + 1;
+            return ERROR;
+        }
+    }
     return SUCCESS;
 }
 

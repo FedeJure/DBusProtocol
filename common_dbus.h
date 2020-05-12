@@ -60,5 +60,11 @@ void _dbus_read_until_separator(char** destination, char** pointer,
                                 char** rest, char* delim);
 void _dbus_save_length(char** stream_chunk, int* stream_pointer,
                         __uint32_t num);
-
+int _dbus_read_method_param(dbus_data_t *self, int client_fd,
+                        int* bytes_readed );
+int _dbus_read_common_param(dbus_data_t *self, int index,
+                        int client_fd, int* bytes_readed);
+int _dbus_read_length_of_stream(int client_fd, int* bytes_readed);
+int _dbus_read_param_data_of_stream(dbus_data_t *self, int client_fd,
+                                    int index, int* bytes_readed);
 #endif  // COMMON_DBUS_H_

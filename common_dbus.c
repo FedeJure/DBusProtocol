@@ -53,6 +53,7 @@ int _read_header_general_data(dbus_data_t *self, int client_fd) {
 int _read_parameters(dbus_data_t *self, int client_fd) {
   int index = 0;
   int bytes_readed = 0;
+  int internal_return = DBUS_SUCCESS;
   while (bytes_readed < round_up_eigth(self->array_length)) {
     char buffer[READ_SIZE_4];
     int readed = socket_read(client_fd, buffer, READ_SIZE_4);
@@ -62,45 +63,75 @@ int _read_parameters(dbus_data_t *self, int client_fd) {
     bytes_readed += readed;
     self->params[index].type = buffer[0];
     self->params[index].data_type = buffer[2];
+    
     if (self->params[index].type == 0x8) {
-      char params_count;
-      readed = socket_read(client_fd, &params_count, 1);
-      if (readed == SOCKET_ERROR) {
-        return DBUS_ERROR;
-      }
-      bytes_readed += readed;
-      self->signature_count = params_count;
-      int length_to_read = round_up_eigth(params_count + 6) -
-                           5;
-      char* params_types = malloc(length_to_read + 1);
-
-      readed = socket_read(client_fd, params_types, length_to_read);
-      if (readed == SOCKET_ERROR) {
-        return DBUS_ERROR;
-      }
-      bytes_readed += readed;
-      free(params_types);
+      internal_return = _dbus_read_method_param(self, client_fd, &bytes_readed);
     } else {
-      char readed_length[READ_SIZE_4];
-      readed = socket_read(client_fd, readed_length, READ_SIZE_4);
-      if (readed == SOCKET_ERROR) {
-        return DBUS_ERROR;
-      }
-      bytes_readed += readed;
-      self->params[index].length = (unsigned int)readed_length[0];
-      int rounded_length = round_up_eigth(self->params[index].length + 1);
-      (*self->params_data)[index] =
-          realloc((*self->params_data)[index], rounded_length);
-      readed =
-          socket_read(client_fd, (*self->params_data)[index], rounded_length);
-      if (readed == SOCKET_ERROR) {
-        return DBUS_ERROR;
-      }
-      bytes_readed += readed;
+      internal_return = _dbus_read_common_param(self, index, client_fd,
+                          &bytes_readed);
     }
+    if (internal_return == DBUS_ERROR) { return DBUS_ERROR; }
     self->params_count++;
     ++index;
   };
+  return DBUS_SUCCESS;
+}
+
+int _dbus_read_common_param(dbus_data_t *self, int index, int client_fd,
+                            int* bytes_readed) {
+  int param_length = _dbus_read_length_of_stream(client_fd, bytes_readed);
+  if (param_length == DBUS_ERROR) {
+    return DBUS_ERROR;
+  }
+  self->params[index].length = param_length;
+  _dbus_read_param_data_of_stream(self, client_fd, index, bytes_readed);
+
+ return DBUS_SUCCESS;
+}
+
+int _dbus_read_method_param(dbus_data_t *self, int client_fd,
+                            int* bytes_readed ) {
+  char params_count;
+  int readed = socket_read(client_fd, &params_count, 1);
+  if (readed == SOCKET_ERROR) {
+    return DBUS_ERROR;
+  }
+  *bytes_readed += readed;
+  self->signature_count = params_count;
+  int length_to_read = round_up_eigth(params_count + 6) -
+                        5;
+  char* params_types = malloc(length_to_read + 1);
+
+  readed = socket_read(client_fd, params_types, length_to_read);
+  if (readed == SOCKET_ERROR) {
+    return DBUS_ERROR;
+  }
+  *bytes_readed += readed;
+  free(params_types);
+  return DBUS_SUCCESS;
+}
+
+int _dbus_read_length_of_stream(int client_fd, int* bytes_readed) {
+  char readed_length[READ_SIZE_4];
+  int readed = socket_read(client_fd, readed_length, READ_SIZE_4);
+  if (readed == SOCKET_ERROR) {
+    return DBUS_ERROR;
+  }
+  *bytes_readed += readed;
+  return (__int32_t)readed_length[0];
+}
+
+int _dbus_read_param_data_of_stream(dbus_data_t *self, int client_fd,
+                                    int index, int* bytes_readed) {
+  int rounded_length = round_up_eigth(self->params[index].length + 1);
+  (*self->params_data)[index] =
+    realloc((*self->params_data)[index], rounded_length);
+  int readed =
+      socket_read(client_fd, (*self->params_data)[index], rounded_length);
+  if (readed == SOCKET_ERROR) {
+    return DBUS_ERROR;
+  }
+  *bytes_readed += readed;
   return DBUS_SUCCESS;
 }
 
