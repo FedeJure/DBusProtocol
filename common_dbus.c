@@ -6,6 +6,7 @@
 #include "./common_utils.h"
 
 #define READ_SIZE_4 4
+#define METHOD_PARAM_TYPE 0x8
 
 void dbus_init(dbus_data_t *self, char ***data, char ***body_data) {
   for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) {
@@ -55,14 +56,12 @@ int _read_parameters(dbus_data_t *self, int client_fd) {
   while (bytes_readed < round_up_eigth(self->array_length)) {
     char buffer[READ_SIZE_4];
     int readed = socket_read(client_fd, buffer, READ_SIZE_4);
-    if (readed == SOCKET_ERROR) {
-      return DBUS_ERROR;
-    }
+    if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
     bytes_readed += readed;
     self->params[index].type = buffer[0];
     self->params[index].data_type = buffer[2];
     
-    if (self->params[index].type == 0x8) {
+    if (self->params[index].type == METHOD_PARAM_TYPE) {
       internal_return = _dbus_read_method_param(self, client_fd, &bytes_readed);
     } else {
       internal_return = _dbus_read_common_param(self, index, client_fd,
@@ -77,9 +76,7 @@ int _read_parameters(dbus_data_t *self, int client_fd) {
 int _dbus_read_common_param(dbus_data_t *self, int index, int client_fd,
                             int* bytes_readed) {
   int param_length = _dbus_read_length_of_stream(client_fd, bytes_readed);
-  if (param_length == DBUS_ERROR) {
-    return DBUS_ERROR;
-  }
+  if (param_length == DBUS_ERROR) { return DBUS_ERROR; }
   _dbus_read_param_data_of_stream(self, client_fd, index, bytes_readed,
                                   param_length + 1);
 
@@ -90,19 +87,13 @@ int _dbus_read_method_param(dbus_data_t *self, int client_fd,
                             int* bytes_readed ) {
   char params_count;
   int readed = socket_read(client_fd, &params_count, 1);
-  if (readed == SOCKET_ERROR) {
-    return DBUS_ERROR;
-  }
+  if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
   *bytes_readed += readed;
   self->signature_count = params_count;
-  int length_to_read = round_up_eigth(params_count + 6) -
-                        5;
+  int length_to_read = round_up_eigth(params_count + 6) - 5;
   char* params_types = malloc(length_to_read + 1);
-
   readed = socket_read(client_fd, params_types, length_to_read);
-  if (readed == SOCKET_ERROR) {
-    return DBUS_ERROR;
-  }
+  if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
   *bytes_readed += readed;
   free(params_types);
   return DBUS_SUCCESS;
@@ -111,9 +102,7 @@ int _dbus_read_method_param(dbus_data_t *self, int client_fd,
 int _dbus_read_length_of_stream(int client_fd, int* bytes_readed) {
   char readed_length[READ_SIZE_4];
   int readed = socket_read(client_fd, readed_length, READ_SIZE_4);
-  if (readed == SOCKET_ERROR) {
-    return DBUS_ERROR;
-  }
+  if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
   *bytes_readed += readed;
   return (__int32_t)readed_length[0];
 }
@@ -144,9 +133,7 @@ int dbus_read_body(dbus_data_t *self, int client_fd) {
                      : round_up_eigth(buffer[0] + 1);
     (*self->body_data)[index] = realloc((*self->body_data)[index], length);
     if (socket_read(client_fd, (*self->body_data)[index], length) ==
-        SOCKET_ERROR) {
-      return DBUS_ERROR;
-    }
+        SOCKET_ERROR) { return DBUS_ERROR; }
     index++;
   }
   return DBUS_SUCCESS;
@@ -164,12 +151,10 @@ int round_up_eigth(int to_round) {
 
 size_t _dbus_build_stream(char **stream, char ***params,
                           unsigned int params_count, unsigned int id) {
-  char* complete_method = (*params)[3];
+  char* complete_method = (*params)[METHOD_PARAM];
   int method_params_count = _dbus_get_method_params_count(complete_method, strlen(complete_method));
   char **signature = malloc(method_params_count * sizeof(char *));
-  for (size_t i = 0; i < method_params_count; i++) {
-    signature[i] = malloc(1);
-  }
+  for (size_t i = 0; i < method_params_count; i++) { signature[i] = malloc(1); }
 
   char *method_name = malloc(1);
   _dbus_get_signature_method(params, &method_name, &signature,
@@ -249,27 +234,38 @@ void _dbus_build_variable_header(char **stream_chunk, int *stream_pointer,
 
 void _dbus_build_body(char **stream_chunk, int *stream_pointer,
                       char ***signature, int method_params_count) {
-  size_t aux_padding = round_up_eigth(6 + method_params_count);
-  int after_initial_body = *stream_pointer + aux_padding;
-  (*stream_chunk)[(*stream_pointer)++] = 0x8;
-  (*stream_chunk)[(*stream_pointer)++] = 0x1;
-  (*stream_chunk)[(*stream_pointer)++] = 'g';
-  (*stream_pointer)++;
-  (*stream_chunk)[(*stream_pointer)++] = method_params_count;
-  for (size_t i = 0; i < method_params_count; i++) {
-    (*stream_chunk)[(*stream_pointer)++] = 's';
-  }
-  *stream_pointer = after_initial_body;
+  char* aux_stream = *stream_chunk;
+  char** aux_signature = *signature;
+  _dbus_build_body_header(stream_chunk, stream_pointer,
+                      method_params_count);
 
   for (size_t i = 0; i < method_params_count; i++) {
+    size_t signature_length = strlen(aux_signature[i]);
     _dbus_save_length(stream_chunk, stream_pointer,
-                      betole(strlen((*signature)[i])));
-    memcpy((*stream_chunk) + (*stream_pointer), (*signature)[i],
-           strlen((*signature)[i]) + 1);
-    (*stream_pointer) += (i == method_params_count - 1)
-                             ? strlen((*signature)[i]) + 1
-                             : round_up_eigth(strlen((*signature)[i]) + 1);
+                      betole(signature_length));
+    memcpy(aux_stream + (*stream_pointer), aux_signature[i],
+           signature_length + 1);
+    *stream_pointer += (i == method_params_count - 1)
+                             ? signature_length + 1
+                             : round_up_eigth(signature_length + 1);
   }
+}
+
+int _dbus_build_body_header(char **stream_chunk, int *stream_pointer,
+                      int method_params_count) {
+  char* aux_stream = *stream_chunk;
+  size_t aux_padding = round_up_eigth(6 + method_params_count);
+  int after_initial_body = *stream_pointer + aux_padding;
+  aux_stream[(*stream_pointer)++] = 0x8;
+  aux_stream[(*stream_pointer)++] = 0x1;
+  aux_stream[(*stream_pointer)++] = 'g';
+  (*stream_pointer)++;
+  aux_stream[(*stream_pointer)++] = method_params_count;
+  for (size_t i = 0; i < method_params_count; i++) {
+    aux_stream[(*stream_pointer)++] = 's';
+  }
+  *stream_pointer = after_initial_body;
+  return DBUS_SUCCESS;
 }
 
 int _dbus_get_body_length_no_padding_on_last(char ***signature, int count) {

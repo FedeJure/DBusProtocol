@@ -29,6 +29,13 @@ typedef struct dbus {
     int signature_count;
 } dbus_data_t;
 
+typedef enum dbus_params {
+    DEST_PARAM,
+    PATH_PARAM,
+    INTERFACE_PARAM,
+    METHOD_PARAM
+} dbus_params_index;
+
 
 int dbus_read_header(dbus_data_t* self, int client_fd);
 int _read_header_general_data(dbus_data_t* self, int client_fd);
@@ -52,6 +59,8 @@ void _dbus_build_variable_header(char** stream_chunk, int* stream_pointer,
                                 int variable_header_length);
 void _dbus_build_body(char** stream_chunk, int* stream_pointer,
                         char*** signature, int method_params_count);
+int _dbus_build_body_header(char **stream_chunk, int *stream_pointer,
+                      int method_params_count);
 void _dbus_get_signature_method(char*** buffer, char** method_name,
                         char*** signature, int params_count);
 int _dbus_get_method_params_count(char* method, size_t length);
