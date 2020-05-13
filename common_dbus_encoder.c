@@ -67,7 +67,7 @@ void _dbus_encoder_build_stream(char** stream, size_t stream_size,
                             char*** params, int params_count,
                             size_t header_size, __uint32_t id) {
   int stream_pointer = 0;
-  *stream = realloc((*stream), stream_size + 6);
+  *stream = realloc((*stream), stream_size);
   char *stream_chunk = *stream;
   memset(stream_chunk, 0, stream_size);
 
@@ -146,8 +146,8 @@ void _dbus_encoder_build_body(char **stream_chunk, int *stream_pointer,
 int _dbus_encoder_build_body_header(char **stream_chunk, int *stream_pointer,
                       int method_params_count) {
   char* aux_stream = *stream_chunk;
-  //size_t aux_padding = round_up_eigth(6 + method_params_count);
-  //int after_initial_body = *stream_pointer + aux_padding;
+  size_t aux_padding = round_up_eigth(6 + method_params_count);
+  int after_initial_body = *stream_pointer + aux_padding;
   aux_stream[(*stream_pointer)++] = 0x8;
   aux_stream[(*stream_pointer)++] = 0x1;
   aux_stream[(*stream_pointer)++] = 'g';
@@ -156,7 +156,7 @@ int _dbus_encoder_build_body_header(char **stream_chunk, int *stream_pointer,
   for (size_t i = 0; i < method_params_count; i++) {
     aux_stream[(*stream_pointer)++] = 's';
   }
-  //*stream_pointer = after_initial_body;
+  *stream_pointer = after_initial_body;
   return DBUS_SUCCESS;
 }
 
