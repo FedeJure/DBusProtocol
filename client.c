@@ -42,7 +42,7 @@ int _process_file(socket_t* socket, FILE* entry_file) {
     while (reader.reading == true) {
         if (_process_line(socket, &reader, id) == ERROR) {
             break;
-        };
+        }
         _receive_response(socket, id);
         id++;
     }

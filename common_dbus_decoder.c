@@ -38,7 +38,7 @@ int _dbus_decoder_read_header_general_data(dbus_data_t *self, int client_fd) {
   char buffer[HEADER_STATIC_SIZE];
   if (socket_read(client_fd, buffer, HEADER_STATIC_SIZE) < 0) {
     return DBUS_ERROR;
-  };
+  }
   self->endianess = buffer[0];
   self->type = buffer[1];
   self->flag = buffer[2];
@@ -70,7 +70,7 @@ int _dbus_decoder_read_parameters(dbus_data_t *self, int client_fd) {
     }
     if (internal_return == DBUS_ERROR) { return DBUS_ERROR; }
     ++index;
-  };
+  }
   return DBUS_SUCCESS;
 }
 

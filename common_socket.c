@@ -130,7 +130,7 @@ int socket_read_next_length(int fd) {
     uint32_t network_length;
     if (socket_read(fd, (char*)&network_length, 4) < 0) {
         return SOCKET_ERROR;
-    };
+    }
     return (int)ntohl(network_length);
 }
 

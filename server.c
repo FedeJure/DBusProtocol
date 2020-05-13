@@ -119,7 +119,7 @@ void _write_variable_log(char **variable_log, dbus_data_t *data) {
                 aux_prefix, (*data->body_data)[i]);
       *variable_log =
           realloc(*variable_log, strlen(*variable_log) + strlen(aux) + 1);
-      memcpy(*variable_log + actual_size - 1, aux, strlen(aux));
+      memcpy(*variable_log + actual_size - 1, aux, strlen(aux) + 1);
       actual_size += strlen(aux);
       free(aux);
     }
