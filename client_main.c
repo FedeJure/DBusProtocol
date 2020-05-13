@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
     char* service;
     FILE* entry_file;
     _extract_params(argc, argv, &address, &service, &entry_file);
-    return _start_client(address, service, entry_file);
+    if (_start_client(address, service, entry_file) == ERROR){ return ERROR; };
+    fclose(entry_file);
 }
 
 void _check_params(int argc, char* argv[]) {

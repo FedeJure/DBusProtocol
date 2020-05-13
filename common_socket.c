@@ -54,6 +54,8 @@ int socket_connect(socket_t* self, const char* address, char* service) {
         }
     }
 
+    if (ptr == NULL) { freeaddrinfo(ai_list); }
+
     return SOCKET_SUCCESS;
 }
 
