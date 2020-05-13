@@ -68,14 +68,13 @@ void _dbus_encoder_build_stream(char** stream, size_t stream_size,
                             size_t header_size, __uint32_t id) {
   int stream_pointer = 0;
   *stream = realloc((*stream), stream_size);
-  char *stream_chunk = *stream;
-  memset(stream_chunk, 0, stream_size);
+  memset(*stream, 0, stream_size);
 
-  _dbus_encoder_build_static_header(&stream_chunk, &stream_pointer, &signature,
+  _dbus_encoder_build_static_header(stream, &stream_pointer, &signature,
                             signature_count, id);
-  _dbus_encoder_build_variable_header(&stream_chunk, &stream_pointer, params,
+  _dbus_encoder_build_variable_header(stream, &stream_pointer, params,
                               params_count, header_size);
-  _dbus_encoder_build_body(&stream_chunk, &stream_pointer, &signature,
+  _dbus_encoder_build_body(stream, &stream_pointer, &signature,
                    signature_count);
 }
 

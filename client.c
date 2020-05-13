@@ -18,7 +18,6 @@
 
 int start_client(char* address, char* service, FILE* entry_file) {
     fflush(stdout);
-
     socket_t socket;
     if (socket_init(&socket) == SOCKET_ERROR) {
         return ERROR;
@@ -26,8 +25,9 @@ int start_client(char* address, char* service, FILE* entry_file) {
     if (socket_connect(&socket, address, service) == SOCKET_ERROR) {
         return ERROR;
     }
-
-    return _process_file(&socket, entry_file);
+    _process_file(&socket, entry_file);
+    socket_release(&socket);
+    return SUCCESS;
 }
 
 
@@ -46,8 +46,6 @@ int _process_file(socket_t* socket, FILE* entry_file) {
         _receive_response(socket, id);
         id++;
     }
-    socket_release(socket);
-
     return SUCCESS;
 }
 

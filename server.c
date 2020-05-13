@@ -26,16 +26,16 @@ int start_server(char *service) {
   if (socket_listen(&socket, service) == -1) {
     return SERVER_ERROR;
   }
-  while (self.socket->fd != -1) {
-    int client_fd;
-    socket_accept(self.socket, &client_fd, self.socket->service);
+  int client_fd;
+  socket_accept(self.socket, &client_fd, self.socket->service);
 
-    while (client_fd > 0) {
-      if (_server_command_receive(&self, client_fd) == SERVER_ERROR) {
-        client_fd = 0;
-      }
+  while (client_fd > 0) {
+    if (_server_command_receive(&self, client_fd) == SERVER_ERROR) {
+      client_fd = 0;
     }
   }
+
+  socket_release(&socket);
 
   return SERVER_SUCCESS;
 }
@@ -54,6 +54,8 @@ int _server_command_receive(server_t *self, int client_fd) {
   }
   dbus_decoder_init(&data, &params_data, &body_data);
   if (dbus_decoder_read_header(&data, client_fd) == DBUS_ERROR) {
+    _server_release(params_data, MAX_PARAMS_COUNT,
+                  body_data, data.signature_count);
     return SERVER_ERROR;
   }
 
@@ -63,6 +65,8 @@ int _server_command_receive(server_t *self, int client_fd) {
       body_data[i] = malloc(1);
     }
     if (dbus_decoder_read_body(&data, client_fd) == DBUS_ERROR) {
+      _server_release(params_data, MAX_PARAMS_COUNT, body_data,
+                      data.signature_count);
       return SERVER_ERROR;
     }
   }
@@ -71,19 +75,21 @@ int _server_command_receive(server_t *self, int client_fd) {
 
   char *response = "OK";
   if (socket_send(client_fd, response, strlen(response) + 1) == SOCKET_ERROR) {
+    _server_release(params_data, MAX_PARAMS_COUNT, body_data,
+                      data.signature_count);
     return SERVER_ERROR;
   }
-  for (size_t i = 0; i < dbus_decoder_get_max_params_count(); i++) {
-    free(params_data[i]);
-  }
-  if (data.signature_count > 0) {
-    for (size_t i = 0; i < data.signature_count; i++) {
-      free(body_data[i]);
-    }
-  }
+  _server_release(params_data, MAX_PARAMS_COUNT, body_data,
+                  data.signature_count);
+  return SERVER_SUCCESS;
+}
+
+void _server_release(char** params_data, int params_data_count, 
+                      char** body_data, int body_data_count) {
+  for (size_t i = 0; i < params_data_count; i++) { free(params_data[i]); }
+  for (size_t i = 0; i < body_data_count; i++) { free(body_data[i]); }
   free(params_data);
   free(body_data);
-  return SERVER_SUCCESS;
 }
 
 void _print_log(dbus_data_t *data) {
