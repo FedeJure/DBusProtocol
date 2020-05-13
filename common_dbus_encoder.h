@@ -37,8 +37,8 @@ int _dbus_encoder_get_header_length_no_padding_on_last(char*** params,
 void _dbus_encoder_build_static_header(char** stream_chunk, int* stream_pointer,
                                 char*** signature, int method_params_count,
                                 __uint32_t id);
-void _dbus_encoder_build_variable_header(char** stream_chunk, int* stream_pointer,
-                                char*** params, int params_count,
+void _dbus_encoder_build_variable_header(char** stream_chunk,
+                    int* stream_pointer, char*** params, int params_count,
                                 int variable_header_length);
 void _dbus_encoder_build_body(char** stream_chunk, int* stream_pointer,
                         char*** signature, int method_params_count);

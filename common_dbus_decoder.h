@@ -35,7 +35,7 @@ typedef struct dbus {
 int dbus_decoder_read_header(dbus_data_t* self, int client_fd);
 
 
-/*=================================PRIVATE=====================================*/
+/*=================================PRIVATE====================================*/
 
 int _dbus_decoder_read_header_general_data(dbus_data_t* self, int client_fd);
 int _dbus_decoder_read_parameters(dbus_data_t* self, int client_fd);
@@ -45,7 +45,7 @@ int dbus_decoder_get_param_size();
 void dbus_decoder_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_decoder_get_max_params_count();
 int _dbus_decoder_read_method_param(dbus_data_t *self, int client_fd,
-                        int* bytes_readed );
+                        int* bytes_readed);
 int _dbus_decoder_read_common_param(dbus_data_t *self, int index,
                         int client_fd, int* bytes_readed);
 int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self, int client_fd,

@@ -32,7 +32,7 @@ int start_client(char* address, char* service, FILE* entry_file) {
 
 
 
-/*=================================PRIVATE=====================================*/
+/*=================================PRIVATE====================================*/
 
 
 int _process_file(socket_t* socket, FILE* entry_file) {

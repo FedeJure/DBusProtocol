@@ -43,7 +43,7 @@ int start_server(char *service) {
 
 
 
-/*=================================PRIVATE=====================================*/
+/*=================================PRIVATE====================================*/
 
 int _server_command_receive(server_t *self, int client_fd) {
   dbus_data_t data;
@@ -124,5 +124,4 @@ void _write_variable_log(char **variable_log, dbus_data_t *data) {
       free(aux);
     }
   }
-  
 }

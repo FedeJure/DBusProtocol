@@ -62,7 +62,8 @@ int _dbus_decoder_read_parameters(dbus_data_t *self, int client_fd) {
     self->params[index].data_type = buffer[2];
     
     if (self->params[index].type == METHOD_PARAM_TYPE) {
-      internal_return = _dbus_decoder_read_method_param(self, client_fd, &bytes_readed);
+      internal_return =
+            _dbus_decoder_read_method_param(self, client_fd, &bytes_readed);
     } else {
       internal_return = _dbus_decoder_read_common_param(self, index, client_fd,
                           &bytes_readed);
@@ -75,7 +76,8 @@ int _dbus_decoder_read_parameters(dbus_data_t *self, int client_fd) {
 
 int _dbus_decoder_read_common_param(dbus_data_t *self, int index, int client_fd,
                             int* bytes_readed) {
-  int param_length = _dbus_decoder_read_length_of_stream(client_fd, bytes_readed);
+  int param_length =
+          _dbus_decoder_read_length_of_stream(client_fd, bytes_readed);
   if (param_length == DBUS_ERROR) { return DBUS_ERROR; }
   _dbus_decoder_read_param_data_of_stream(self, client_fd, index, bytes_readed,
                                   param_length + 1);
