@@ -74,8 +74,10 @@ int _dbus_decoder_read_parameters(dbus_data_t *self, int client_fd) {
   return DBUS_SUCCESS;
 }
 
-int _dbus_decoder_read_common_param(dbus_data_t *self, int index, int client_fd,
-                            int* bytes_readed) {
+int _dbus_decoder_read_common_param(dbus_data_t *self,
+                                    int index,
+                                    int client_fd,
+                                    int* bytes_readed) {
   int param_length =
           _dbus_decoder_read_length_of_stream(client_fd, bytes_readed);
   if (param_length == DBUS_ERROR) { return DBUS_ERROR; }
@@ -85,8 +87,9 @@ int _dbus_decoder_read_common_param(dbus_data_t *self, int index, int client_fd,
  return DBUS_SUCCESS;
 }
 
-int _dbus_decoder_read_method_param(dbus_data_t *self, int client_fd,
-                            int* bytes_readed ) {
+int _dbus_decoder_read_method_param(dbus_data_t *self,
+                                    int client_fd,
+                                    int* bytes_readed ) {
   char params_count;
   int readed = socket_read(client_fd, &params_count, 1);
   if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
@@ -102,8 +105,11 @@ int _dbus_decoder_read_method_param(dbus_data_t *self, int client_fd,
 }
 
 
-int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self, int client_fd,
-                                    int index, int* bytes_readed, int length) {
+int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self,
+                                            int client_fd,
+                                            int index,
+                                            int* bytes_readed,
+                                            int length) {
   int rounded_length = round_up_eigth(length);
   (*self->params_data)[index] =
     realloc((*self->params_data)[index], rounded_length);

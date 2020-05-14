@@ -8,13 +8,16 @@
 #define READING 1
 #define NOT_READING 0
 
-void init_reader(reader_t* self, FILE* file, int bytes) {
+void init_reader(reader_t* self,
+                FILE* file,
+                int bytes) {
     self->bytes_to_read = bytes;
     self->file = file;
     self->reading = true;
 }
 
-void reader_next_buffer_until_space(reader_t* self, char** buffer) {
+void reader_next_buffer_until_space(reader_t* self,
+                                    char** buffer) {
     bool open_comma = false;
     size_t size = self->bytes_to_read;
     *buffer = realloc(*buffer, size);
@@ -27,6 +30,8 @@ void reader_next_buffer_until_space(reader_t* self, char** buffer) {
         if (index >= size - 1) {
             size = size + self->bytes_to_read;
             *buffer = realloc(*buffer, size);
+            memset(*buffer + size - self->bytes_to_read, 0, 
+                    self->bytes_to_read);
         }
         if (readed != ' ' && open_comma == true) {
             open_comma = false;

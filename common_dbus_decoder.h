@@ -44,11 +44,17 @@ int dbus_decoder_get_static_size();
 int dbus_decoder_get_param_size();
 void dbus_decoder_init(dbus_data_t* self, char*** data, char*** body_data);
 int dbus_decoder_get_max_params_count();
-int _dbus_decoder_read_method_param(dbus_data_t *self, int client_fd,
-                        int* bytes_readed);
-int _dbus_decoder_read_common_param(dbus_data_t *self, int index,
-                        int client_fd, int* bytes_readed);
-int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self, int client_fd,
-                                    int index, int* bytes_readed, int length);
+int _dbus_decoder_read_method_param(dbus_data_t *self,
+                                    int client_fd,
+                                    int* bytes_readed);
+int _dbus_decoder_read_common_param(dbus_data_t *self,
+                                    int index,
+                                    int client_fd,
+                                    int* bytes_readed);
+int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self,
+                                            int client_fd,
+                                            int index,
+                                            int* bytes_readed,
+                                            int length);
 int _dbus_decoder_read_length_of_stream(int client_fd, int* bytes_readed);
 #endif  // COMMON_DBUS_H_

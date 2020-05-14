@@ -32,8 +32,11 @@ void _check_params(int argc, char* argv[]) {
     }
 }
 
-void _extract_params(int argc, char* argv[], char** address, char** service,
-                        FILE** entry_file) {
+void _extract_params(int argc,
+                    char* argv[],
+                    char** address,
+                    char** service,
+                    FILE** entry_file) {
     *address = argv[1];
     *service = argv[2];
     if (argc - 1 == 3) {

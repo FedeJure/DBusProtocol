@@ -84,8 +84,10 @@ int _server_command_receive(server_t *self, int client_fd) {
   return SERVER_SUCCESS;
 }
 
-void _server_release(char** params_data, int params_data_count, 
-                      char** body_data, int body_data_count) {
+void _server_release(char** params_data,
+                      int params_data_count, 
+                      char** body_data,
+                      int body_data_count) {
   for (size_t i = 0; i < params_data_count; i++) { free(params_data[i]); }
   for (size_t i = 0; i < body_data_count; i++) { free(body_data[i]); }
   free(params_data);

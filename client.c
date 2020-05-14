@@ -57,6 +57,7 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
         return ERROR;
     }
     char* stream = malloc(1);
+    memset(stream, 0, 1);
     size_t size = dbus_encoder_build_stream(&stream, &params,
                                 params_count, id);
     if (socket_send(socket->fd, stream, size) == SOCKET_ERROR) {
@@ -68,7 +69,8 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
     return SUCCESS;
 }
 
-int _extract_params_of_line(char*** dest_params, int* params_count,
+int _extract_params_of_line(char*** dest_params,
+                            int* params_count,
                             reader_t* reader) {
     for (size_t i = 0; i < *params_count; i++) {
         (*dest_params)[i] = malloc(1);
