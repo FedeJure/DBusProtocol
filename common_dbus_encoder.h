@@ -44,22 +44,18 @@ int _dbus_encoder_get_body_length_no_padding_on_last(char*** params, int count);
 int _dbus_encoder_get_header_length_no_padding_on_last(char*** params,
                                                         int count,
                                                         int signature_count);
-void _dbus_encoder_build_static_header(char** stream_chunk,
-                                        int* stream_pointer,
+void _dbus_encoder_build_static_header(char** stream_pointer,
                                         char*** signature,
                                         int method_params_count,
                                         __uint32_t id);
-void _dbus_encoder_build_variable_header(char** stream_chunk,
-                                        int* stream_pointer,
+void _dbus_encoder_build_variable_header(char** stream_pointer,
                                         char*** params,
                                         int params_count,
                                         int variable_header_length);
-void _dbus_encoder_build_body(char** stream_chunk,
-                                int* stream_pointer,
+void _dbus_encoder_build_body(char** stream_pointer,
                                 char*** signature,
                                 int method_params_count);
-int _dbus_encoder_build_body_header(char **stream_chunk,
-                                    int *stream_pointer,
+int _dbus_encoder_build_body_header(char **stream_pointer,
                                     int method_params_count);
 void _dbus_encoder_get_signature_method(char*** buffer,
                                         char** method_name,
@@ -70,8 +66,6 @@ void _dbus_encoder_read_until_separator(char** destination,
                                         char** pointer,
                                         char** rest,
                                         char* delim);
-void _dbus_encoder_save_length(char** stream_chunk,
-                                int* stream_pointer,
-                                __uint32_t num);
+void _dbus_encoder_save_length(char** stream_pointer, __uint32_t num);
 
 #endif  // COMMON_DBUS_ENCODER_H_

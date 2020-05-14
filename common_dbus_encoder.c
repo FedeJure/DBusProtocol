@@ -39,16 +39,6 @@ size_t dbus_encoder_build_stream(char **stream,
   return stream_size;
 }
 
-
-
-
-
-
-
-
-
-
-
 /*=================================PRIVATE====================================*/
 
 void _dbus_encoder_calculate_sizes(size_t* static_size,
@@ -75,84 +65,80 @@ void _dbus_encoder_build_stream(char** stream,
                                 int params_count,
                                 size_t header_size,
                                 __uint32_t id) {
-  int stream_pointer = 0;
   *stream = realloc((*stream), stream_size);
+  char* stream_pointer = *stream;
   memset(*stream, 0, stream_size);
 
-  _dbus_encoder_build_static_header(stream, &stream_pointer, &signature,
+  _dbus_encoder_build_static_header(&stream_pointer, &signature,
                             signature_count, id);
-  _dbus_encoder_build_variable_header(stream, &stream_pointer, params,
+  _dbus_encoder_build_variable_header(&stream_pointer, params,
                               params_count, header_size);
   if (signature_count > 0){
-    _dbus_encoder_build_body(stream, &stream_pointer, &signature,
+    _dbus_encoder_build_body(&stream_pointer, &signature,
                    signature_count);
   }
 }
 
-void _dbus_encoder_build_static_header(char **stream_chunk,
-                                      int *stream_pointer,
-                                      char ***signature,
+void _dbus_encoder_build_static_header(char** stream_pointer,
+                                      char*** signature,
                                       int method_params_count,
                                       __uint32_t id) {
-  (*stream_chunk)[(*stream_pointer)++] = 'l';
-  (*stream_chunk)[(*stream_pointer)++] = 0x01;
-  (*stream_chunk)[(*stream_pointer)++] = 0x0;
-  (*stream_chunk)[(*stream_pointer)++] = 0x01;
-  _dbus_encoder_save_length(stream_chunk, stream_pointer,
+  *((*stream_pointer)++) = 'l';
+  *((*stream_pointer)++) = 0x01;
+  *((*stream_pointer)++) = 0x0;
+  *((*stream_pointer)++) = 0x01;
+  _dbus_encoder_save_length(stream_pointer,
                     betole(_dbus_encoder_get_body_length_no_padding_on_last(
                         signature, method_params_count)));
-  _dbus_encoder_save_length(stream_chunk, stream_pointer, betole(id));
+  _dbus_encoder_save_length(stream_pointer, betole(id));
 }
 
-void _dbus_encoder_save_length(char **stream_chunk,
-                              int *stream_pointer,
+void _dbus_encoder_save_length(char **stream_pointer,
                               __uint32_t num) {
-  char *aux = malloc(sizeof(__uint32_t));
-  memset(aux, 0, sizeof(__uint32_t));
+  size_t size = sizeof(__uint32_t);
+  char *aux = malloc(size);
+  memset(aux, 0, size);
   save_decimal_as_bytes(&aux, num);
-  memcpy(*stream_chunk + *stream_pointer, aux, sizeof(__uint32_t));
-  *stream_pointer += sizeof(__uint32_t);
+  memcpy(*stream_pointer, aux, size);
+  *stream_pointer += size;
   free(aux);
 }
 
-void _dbus_encoder_build_variable_header(char **stream_chunk,
-                                        int *stream_pointer,
+void _dbus_encoder_build_variable_header(char** stream_pointer,
                                         char ***params,
                                         int params_count,
                                         int variable_header_length) {
-  _dbus_encoder_save_length(stream_chunk, stream_pointer,
-                    betole(variable_header_length));
+  _dbus_encoder_save_length(stream_pointer, betole(variable_header_length));
   char params_types[READ_SIZE_4] = {0x6, 0x1, 0x2, 0x3};
   char params_data_types[READ_SIZE_4] = {'s', 'o', 's', 's'};
   int order_mapping[READ_SIZE_4] = {1, 0, 2, 3};
   for (size_t i = 0; i < params_count; i++) {
     int index = order_mapping[i];
-    (*stream_chunk)[(*stream_pointer)++] = params_types[index];
-    (*stream_chunk)[(*stream_pointer)++] = 0x1;
-    (*stream_chunk)[(*stream_pointer)++] = params_data_types[index];
-    (*stream_pointer)++;
-    _dbus_encoder_save_length(stream_chunk, stream_pointer,
+    char** aux_pointer = stream_pointer;
+    *((*aux_pointer)++) = params_types[index];
+    *((*aux_pointer)++) = 0x1;
+    *((*aux_pointer)++) = params_data_types[index];
+    *aux_pointer += 1;
+    _dbus_encoder_save_length(aux_pointer,
                       betole(strlen((*params)[index])));
-    memcpy((*stream_chunk) + (*stream_pointer), (*params)[index],
+    memcpy(*aux_pointer, (*params)[index],
            strlen((*params)[index]) + END_OF_STRING);
-    (*stream_pointer) += round_up_eigth(strlen((*params)[index]) + END_OF_STRING);
+    *stream_pointer += round_up_eigth(strlen((*params)[index]) + END_OF_STRING);
   }
 }
 
-void _dbus_encoder_build_body(char **stream_chunk,
-                              int *stream_pointer,
+void _dbus_encoder_build_body(char** stream_pointer,
                               char ***signature,
                               int method_params_count) {
-  char* aux_stream = *stream_chunk;
   char** aux_signature = *signature;
-  _dbus_encoder_build_body_header(stream_chunk, stream_pointer,
+  _dbus_encoder_build_body_header(stream_pointer,
                       method_params_count);
 
   for (size_t i = 0; i < method_params_count; i++) {
     size_t signature_length = strlen(aux_signature[i]);
-    _dbus_encoder_save_length(stream_chunk, stream_pointer,
+    _dbus_encoder_save_length(stream_pointer,
                       betole(signature_length));
-    memcpy(aux_stream + (*stream_pointer), aux_signature[i],
+    memcpy(*stream_pointer, aux_signature[i],
            signature_length + END_OF_STRING);
     *stream_pointer += (i == method_params_count - 1)
                              ? signature_length + END_OF_STRING
@@ -160,19 +146,17 @@ void _dbus_encoder_build_body(char **stream_chunk,
   }
 }
 
-int _dbus_encoder_build_body_header(char **stream_chunk,
-                                    int *stream_pointer,
+int _dbus_encoder_build_body_header(char **stream_pointer,
                                     int method_params_count) {
-  char* aux_stream = *stream_chunk;
   size_t aux_padding = round_up_eigth(6 + method_params_count);
-  int after_initial_body = *stream_pointer + aux_padding;
-  aux_stream[(*stream_pointer)++] = 0x8;
-  aux_stream[(*stream_pointer)++] = 0x1;
-  aux_stream[(*stream_pointer)++] = 'g';
-  (*stream_pointer)++;
-  aux_stream[(*stream_pointer)++] = method_params_count;
+  char* after_initial_body = *stream_pointer + aux_padding;
+  *((*stream_pointer)++) = 0x8;
+  *((*stream_pointer)++) = 0x1;
+  *((*stream_pointer)++) = 'g';
+  *stream_pointer += 1;
+  *((*stream_pointer)++) = method_params_count;
   for (size_t i = 0; i < method_params_count; i++) {
-    aux_stream[(*stream_pointer)++] = 's';
+    *((*stream_pointer)++) = 's';
   }
   *stream_pointer = after_initial_body;
   return DBUS_SUCCESS;
