@@ -50,28 +50,17 @@ int _server_command_receive(server_t *self, int client_fd) {
   dbus_data_t data;
   char **params_data = malloc(MAX_PARAMS_COUNT * sizeof(char *));
   char **body_data = malloc(1 * sizeof(char *));
-  for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) {
-    params_data[i] = malloc(1);
-  }
+  for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) { params_data[i] = malloc(1); }
   dbus_decoder_init(&data, &params_data, &body_data);
   if (dbus_decoder_read_header(&data, client_fd) == DBUS_ERROR) {
     _server_release(params_data, MAX_PARAMS_COUNT,
                   body_data, data.signature_count);
     return SERVER_ERROR;
   }
-
   if (data.signature_count > 0) {
-    body_data = realloc(body_data, data.signature_count * sizeof(char *));
-    for (size_t i = 0; i < data.signature_count; i++) {
-      body_data[i] = malloc(1);
-    }
-    if (dbus_decoder_read_body(&data, client_fd) == DBUS_ERROR) {
-      _server_release(params_data, MAX_PARAMS_COUNT, body_data,
-                      data.signature_count);
-      return SERVER_ERROR;
-    }
+    if (_server_decode_body(&data, client_fd, &body_data, &params_data)
+        == SERVER_ERROR) { return SERVER_ERROR; }
   }
-
   _print_log(&data);
 
   char *response = "OK";
@@ -82,6 +71,22 @@ int _server_command_receive(server_t *self, int client_fd) {
   }
   _server_release(params_data, MAX_PARAMS_COUNT, body_data,
                   data.signature_count);
+  return SERVER_SUCCESS;
+}
+
+int _server_decode_body(dbus_data_t* data,
+                        const int client_fd,
+                        char*** body_data,
+                        char*** params_data) {
+  *body_data = realloc(*body_data, data->signature_count * sizeof(char *));
+  for (size_t i = 0; i < data->signature_count; i++) {
+    (*body_data)[i] = malloc(1);
+  }
+  if (dbus_decoder_read_body(data, client_fd) == DBUS_ERROR) {
+    _server_release(*params_data, MAX_PARAMS_COUNT, *body_data,
+                    data->signature_count);
+    return SERVER_ERROR;
+  }
   return SERVER_SUCCESS;
 }
 

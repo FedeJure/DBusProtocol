@@ -5,8 +5,8 @@
 #include "./common_socket.h"
 #include "./common_utils.h"
 
-#define READ_SIZE_4 4
 #define METHOD_PARAM_TYPE 0x8
+#define PARAM_HEADER_SIZE 4
 
 /*=================================PUBLIC=====================================*/
 
@@ -48,7 +48,8 @@ void _dbus_encoder_calculate_sizes(size_t* static_size,
                                   const __uint32_t params_count,
                                   const __uint32_t signature_count,
                                   char** signature) {
-  *static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
+  size_t length_size = sizeof(__uint32_t);
+  *static_size = PARAM_HEADER_SIZE + 3 * length_size;
   *header_size = _dbus_encoder_get_header_length_no_padding_on_last(
       params, params_count, signature_count);
   *stream_size = *static_size +
@@ -109,9 +110,9 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
                                         const __uint32_t params_count,
                                         const __uint32_t variable_header_length) {
   _dbus_encoder_save_length(stream_pointer, betole(variable_header_length));
-  char params_types[READ_SIZE_4] = {0x6, 0x1, 0x2, 0x3};
-  char params_data_types[READ_SIZE_4] = {'s', 'o', 's', 's'};
-  int order_mapping[READ_SIZE_4] = {1, 0, 2, 3};
+  char params_types[PARAM_HEADER_SIZE] = {0x6, 0x1, 0x2, 0x3};
+  char params_data_types[PARAM_HEADER_SIZE] = {'s', 'o', 's', 's'};
+  int order_mapping[PARAM_HEADER_SIZE] = {1, 0, 2, 3};
   for (size_t i = 0; i < params_count; i++) {
     int index = order_mapping[i];
     char* param = (*params)[index];

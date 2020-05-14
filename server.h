@@ -20,5 +20,9 @@ void _server_release(char** params_data,
                     char** body_data,
                     int body_data_count);
 void _write_variable_log(char** variable_log, dbus_data_t* data);
+int _server_decode_body(dbus_data_t* data,
+                        const int client_fd,
+                        char*** body_data,
+                        char*** params_data);
 
 #endif  // SERVER_H_
