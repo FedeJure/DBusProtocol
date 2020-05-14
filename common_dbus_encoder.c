@@ -74,7 +74,7 @@ void _dbus_encoder_build_stream(char** stream,
   _dbus_encoder_build_variable_header(&stream_pointer, params,
                               params_count, header_size);
   if (signature_count > 0){
-    _dbus_encoder_build_body(&stream_pointer, &signature,
+    _dbus_encoder_build_body(&stream_pointer, signature,
                    signature_count);
   }
 }
@@ -105,7 +105,7 @@ void _dbus_encoder_save_length(char **stream_pointer,
 }
 
 void _dbus_encoder_build_variable_header(char** stream_pointer,
-                                        char ***params,
+                                        char*** params,
                                         int params_count,
                                         int variable_header_length) {
   _dbus_encoder_save_length(stream_pointer, betole(variable_header_length));
@@ -114,35 +114,33 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
   int order_mapping[READ_SIZE_4] = {1, 0, 2, 3};
   for (size_t i = 0; i < params_count; i++) {
     int index = order_mapping[i];
-    char** aux_pointer = stream_pointer;
-    *((*aux_pointer)++) = params_types[index];
-    *((*aux_pointer)++) = 0x1;
-    *((*aux_pointer)++) = params_data_types[index];
-    *aux_pointer += 1;
-    _dbus_encoder_save_length(aux_pointer,
-                      betole(strlen((*params)[index])));
-    memcpy(*aux_pointer, (*params)[index],
-           strlen((*params)[index]) + END_OF_STRING);
-    *stream_pointer += round_up_eigth(strlen((*params)[index]) + END_OF_STRING);
+    char* param = (*params)[index];
+    *((*stream_pointer)++) = params_types[index];
+    *((*stream_pointer)++) = 0x1;
+    *((*stream_pointer)++) = params_data_types[index];
+    *stream_pointer += 1;
+    _dbus_encoder_save_length(stream_pointer,
+                      betole(strlen(param)));
+    size_t param_size = strlen(param) + END_OF_STRING;
+    memcpy(*stream_pointer, param, param_size);
+    *stream_pointer += round_up_eigth(param_size);
   }
 }
 
 void _dbus_encoder_build_body(char** stream_pointer,
-                              char ***signature,
-                              int method_params_count) {
-  char** aux_signature = *signature;
-  _dbus_encoder_build_body_header(stream_pointer,
-                      method_params_count);
-
-  for (size_t i = 0; i < method_params_count; i++) {
-    size_t signature_length = strlen(aux_signature[i]);
-    _dbus_encoder_save_length(stream_pointer,
-                      betole(signature_length));
-    memcpy(*stream_pointer, aux_signature[i],
-           signature_length + END_OF_STRING);
-    *stream_pointer += (i == method_params_count - 1)
-                             ? signature_length + END_OF_STRING
-                             : round_up_eigth(signature_length + END_OF_STRING);
+                              char** signature,
+                              int signature_count) {
+  _dbus_encoder_build_body_header(stream_pointer, signature_count);
+  for (size_t i = 0; i < signature_count; i++) {
+    size_t signature_length = strlen((*signature));
+    size_t signature_size = signature_length + END_OF_STRING;
+    _dbus_encoder_save_length(stream_pointer, betole(signature_length));
+    memcpy(*stream_pointer, *signature, signature_size);
+    int is_last_param = i == signature_count - 1;
+    *stream_pointer += is_last_param
+                        ? signature_size
+                        : round_up_eigth(signature_size);
+    signature += 1;
   }
 }
 
@@ -166,12 +164,15 @@ int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
                                                     int count) {
   size_t length = 0;
   if (count == 0) return length;
-  for (size_t i = 0; i < count - 1; i++) {
+  for (size_t i = 0; i < count; i++) {
     length += sizeof(__uint32_t);
-    length += round_up_eigth(strlen((*signature)[i]) + END_OF_STRING);
+    char* param = (*signature)[i];
+    size_t param_size = strlen(param) + END_OF_STRING;
+    int is_last_param = i == count - 1;
+    length += is_last_param ?
+              param_size :
+              round_up_eigth(param_size);
   }
-  length += sizeof(__uint32_t);
-  length += strlen((*signature)[count - 1]) + END_OF_STRING;
   return length;
 }
 
@@ -181,12 +182,18 @@ int _dbus_encoder_get_header_length_no_padding_on_last(char ***params,
   size_t length = 0;
   for (size_t i = 0; i < count; i++) {
     size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
-    length += ((i == count - 1) && (signature_count == 0))
-                  ? length_and_data
-                  : round_up_eigth(length_and_data);
+    int is_last_param = ((i == count - 1) && (signature_count == 0));
+    length += is_last_param
+                ? length_and_data
+                : round_up_eigth(length_and_data);
   }
   if (signature_count > 0) {
-    length += round_up_eigth(sizeof(__uint32_t) + (2 + signature_count));
+    size_t signature_length_size = sizeof(__uint32_t);
+    size_t signature_byte_param_count_size = 1;
+    length += round_up_eigth(signature_length_size +
+                              signature_byte_param_count_size +
+                              signature_count +
+                              END_OF_STRING);
   }
   return length;
 }
@@ -200,12 +207,12 @@ void _dbus_encoder_get_signature_method(char ***buffer,
   _dbus_encoder_read_until_separator(method_name, &actual, &rest, "(");
   if (params_count == 0) return;
   char **param;
-  for (size_t i = 0; i < params_count - 1; i++) {
+  for (size_t i = 0; i < params_count; i++) {
     param = &((*signature)[i]);
-    _dbus_encoder_read_until_separator(param, &actual, &rest, ",");
+    int is_last_param = i == params_count - 1;
+    char* separator = is_last_param ? ")" : ",";
+    _dbus_encoder_read_until_separator(param, &actual, &rest, separator);
   }
-  param = &((*signature)[params_count - 1]);
-  _dbus_encoder_read_until_separator(param, &actual, &rest, ")");
 }
 
 int _dbus_encoder_get_method_params_count(char* method, size_t length) {

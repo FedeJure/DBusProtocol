@@ -53,8 +53,8 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
                                         int params_count,
                                         int variable_header_length);
 void _dbus_encoder_build_body(char** stream_pointer,
-                                char*** signature,
-                                int method_params_count);
+                                char** signature,
+                                int signature_count);
 int _dbus_encoder_build_body_header(char **stream_pointer,
                                     int method_params_count);
 void _dbus_encoder_get_signature_method(char*** buffer,
