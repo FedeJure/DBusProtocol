@@ -12,8 +12,8 @@
 
 size_t dbus_encoder_build_stream(char **stream,
                                 char ***params,
-                                unsigned int params_count,
-                                unsigned int id) {
+                                const __uint32_t params_count,
+                                const __uint32_t id) {
   char* complete_method = (*params)[METHOD_PARAM];
   int signature_count = _dbus_encoder_get_method_params_count(
                           complete_method, strlen(complete_method));
@@ -45,8 +45,8 @@ void _dbus_encoder_calculate_sizes(size_t* static_size,
                                   size_t* header_size,
                                   size_t* stream_size,
                                   char*** params,
-                                  int params_count,
-                                  int signature_count,
+                                  const __uint32_t params_count,
+                                  const __uint32_t signature_count,
                                   char** signature) {
   *static_size = READ_SIZE_4 + 3 * sizeof(__uint32_t);
   *header_size = _dbus_encoder_get_header_length_no_padding_on_last(
@@ -58,14 +58,14 @@ void _dbus_encoder_calculate_sizes(size_t* static_size,
 }
 
 void _dbus_encoder_build_stream(char** stream,
-                                size_t stream_size,
+                                const size_t stream_size,
                                 char** signature,
-                                int signature_count,
+                                const __uint32_t signature_count,
                                 char*** params,
-                                int params_count,
-                                size_t header_size,
-                                __uint32_t id) {
-  *stream = realloc((*stream), stream_size);
+                                const __uint32_t params_count,
+                                const size_t header_size,
+                                const __uint32_t id) {
+  *stream = realloc(*stream, stream_size);
   char* stream_pointer = *stream;
   memset(*stream, 0, stream_size);
 
@@ -81,7 +81,7 @@ void _dbus_encoder_build_stream(char** stream,
 
 void _dbus_encoder_build_static_header(char** stream_pointer,
                                       char*** signature,
-                                      int method_params_count,
+                                      const __uint32_t signature_count,
                                       __uint32_t id) {
   *((*stream_pointer)++) = 'l';
   *((*stream_pointer)++) = 0x01;
@@ -89,7 +89,7 @@ void _dbus_encoder_build_static_header(char** stream_pointer,
   *((*stream_pointer)++) = 0x01;
   _dbus_encoder_save_length(stream_pointer,
                     betole(_dbus_encoder_get_body_length_no_padding_on_last(
-                        signature, method_params_count)));
+                        signature, signature_count)));
   _dbus_encoder_save_length(stream_pointer, betole(id));
 }
 
@@ -106,8 +106,8 @@ void _dbus_encoder_save_length(char **stream_pointer,
 
 void _dbus_encoder_build_variable_header(char** stream_pointer,
                                         char*** params,
-                                        int params_count,
-                                        int variable_header_length) {
+                                        const __uint32_t params_count,
+                                        const __uint32_t variable_header_length) {
   _dbus_encoder_save_length(stream_pointer, betole(variable_header_length));
   char params_types[READ_SIZE_4] = {0x6, 0x1, 0x2, 0x3};
   char params_data_types[READ_SIZE_4] = {'s', 'o', 's', 's'};
@@ -129,7 +129,7 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
 
 void _dbus_encoder_build_body(char** stream_pointer,
                               char** signature,
-                              int signature_count) {
+                              const __uint32_t signature_count) {
   _dbus_encoder_build_body_header(stream_pointer, signature_count);
   for (size_t i = 0; i < signature_count; i++) {
     size_t signature_length = strlen((*signature));
@@ -145,15 +145,15 @@ void _dbus_encoder_build_body(char** stream_pointer,
 }
 
 int _dbus_encoder_build_body_header(char **stream_pointer,
-                                    int method_params_count) {
-  size_t aux_padding = round_up_eigth(6 + method_params_count);
+                                    const __uint32_t signature_count) {
+  size_t aux_padding = round_up_eigth(6 + signature_count);
   char* after_initial_body = *stream_pointer + aux_padding;
   *((*stream_pointer)++) = 0x8;
   *((*stream_pointer)++) = 0x1;
   *((*stream_pointer)++) = 'g';
   *stream_pointer += 1;
-  *((*stream_pointer)++) = method_params_count;
-  for (size_t i = 0; i < method_params_count; i++) {
+  *((*stream_pointer)++) = signature_count;
+  for (size_t i = 0; i < signature_count; i++) {
     *((*stream_pointer)++) = 's';
   }
   *stream_pointer = after_initial_body;
@@ -161,7 +161,7 @@ int _dbus_encoder_build_body_header(char **stream_pointer,
 }
 
 int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
-                                                    int count) {
+                                                    const __uint32_t count) {
   size_t length = 0;
   if (count == 0) return length;
   for (size_t i = 0; i < count; i++) {
@@ -177,8 +177,8 @@ int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
 }
 
 int _dbus_encoder_get_header_length_no_padding_on_last(char ***params,
-                                                        int count,
-                                                        int signature_count) {
+                                                        const __uint32_t count,
+                                                        const __uint32_t signature_count) {
   size_t length = 0;
   for (size_t i = 0; i < count; i++) {
     size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
@@ -201,7 +201,7 @@ int _dbus_encoder_get_header_length_no_padding_on_last(char ***params,
 void _dbus_encoder_get_signature_method(char ***buffer,
                                         char **method_name,
                                         char ***signature,
-                                        int params_count) {
+                                        const __uint32_t params_count) {
   char *rest = (*buffer)[3];
   char *actual;
   _dbus_encoder_read_until_separator(method_name, &actual, &rest, "(");
@@ -215,7 +215,7 @@ void _dbus_encoder_get_signature_method(char ***buffer,
   }
 }
 
-int _dbus_encoder_get_method_params_count(char* method, size_t length) {
+int _dbus_encoder_get_method_params_count(char* method, const size_t length) {
   int comma_count = 0;
   for (size_t i = 0; i < length; i++) {
     if (method[i] == ')' && method[i-1] == '(') return 0;
