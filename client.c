@@ -7,6 +7,7 @@
 #include "./client.h"
 #include "./client_file_reader.h"
 #include "./common_socket.h"
+#include "./common_utils.h"
 #include "./common_dbus_encoder.h"
 
 #define ERROR 1
@@ -61,6 +62,7 @@ int _process_line(socket_t* socket, reader_t* reader, int id) {
     size_t size = dbus_encoder_build_stream(&stream, &params,
                                 params_count, id);
     if (socket_send(socket->fd, stream, size) == SOCKET_ERROR) {
+        _release_params(&params, params_count);
         free(stream);
         return ERROR;
     }
@@ -89,7 +91,7 @@ void _release_params(char*** params, int count) {
 }
 
 void _process_buffer(socket_t* socket, char** buffer, char* to_send) {
-    memcpy(to_send, *buffer, strlen(*buffer) + 1);
+    memcpy(to_send, *buffer, strlen(*buffer) + END_OF_STRING);
 }
 
 void _receive_response(socket_t* socket, int id) {

@@ -134,8 +134,8 @@ void _dbus_encoder_build_variable_header(char **stream_chunk,
     _dbus_encoder_save_length(stream_chunk, stream_pointer,
                       betole(strlen((*params)[index])));
     memcpy((*stream_chunk) + (*stream_pointer), (*params)[index],
-           strlen((*params)[index]) + 1);
-    (*stream_pointer) += round_up_eigth(strlen((*params)[index]) + 1);
+           strlen((*params)[index]) + END_OF_STRING);
+    (*stream_pointer) += round_up_eigth(strlen((*params)[index]) + END_OF_STRING);
   }
 }
 
@@ -153,10 +153,10 @@ void _dbus_encoder_build_body(char **stream_chunk,
     _dbus_encoder_save_length(stream_chunk, stream_pointer,
                       betole(signature_length));
     memcpy(aux_stream + (*stream_pointer), aux_signature[i],
-           signature_length + 1);
+           signature_length + END_OF_STRING);
     *stream_pointer += (i == method_params_count - 1)
-                             ? signature_length + 1
-                             : round_up_eigth(signature_length + 1);
+                             ? signature_length + END_OF_STRING
+                             : round_up_eigth(signature_length + END_OF_STRING);
   }
 }
 
@@ -184,10 +184,10 @@ int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
   if (count == 0) return length;
   for (size_t i = 0; i < count - 1; i++) {
     length += sizeof(__uint32_t);
-    length += round_up_eigth(strlen((*signature)[i]) + 1);
+    length += round_up_eigth(strlen((*signature)[i]) + END_OF_STRING);
   }
   length += sizeof(__uint32_t);
-  length += strlen((*signature)[count - 1]) + 1;
+  length += strlen((*signature)[count - 1]) + END_OF_STRING;
   return length;
 }
 

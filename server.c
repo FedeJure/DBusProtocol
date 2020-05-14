@@ -7,6 +7,7 @@
 #include <strings.h>
 #include "./server.h"
 #include "./common_dbus_decoder.h"
+#include "./common_utils.h"
 
 #define SERVER_ERROR 1
 #define SERVER_SUCCESS 0
@@ -74,7 +75,7 @@ int _server_command_receive(server_t *self, int client_fd) {
   _print_log(&data);
 
   char *response = "OK";
-  if (socket_send(client_fd, response, strlen(response) + 1) == SOCKET_ERROR) {
+  if (socket_send(client_fd, response, strlen(response) + END_OF_STRING) == SOCKET_ERROR) {
     _server_release(params_data, MAX_PARAMS_COUNT, body_data,
                       data.signature_count);
     return SERVER_ERROR;
@@ -114,21 +115,22 @@ void _print_log(dbus_data_t *data) {
 void _write_variable_log(char **variable_log, dbus_data_t *data) {
   if (data->signature_count > 0) {
     char *prefix = "\n* Parametros:";
-    *variable_log = realloc(*variable_log, strlen(prefix) + 1);
-    memcpy(*variable_log, prefix, strlen(prefix) + 1);
-    size_t actual_size = strlen(*variable_log) + 1;
+    size_t prefix_size = strlen(prefix) + END_OF_STRING;
+    *variable_log = realloc(*variable_log, prefix_size);
+    memcpy(*variable_log, prefix, prefix_size);
+    size_t actual_size = strlen(*variable_log) + END_OF_STRING;
     for (size_t i = 0; i < data->signature_count; i++) {
       char *aux_prefix = "\n    * %s";
       size_t data_size = strlen((*data->body_data)[i]);
-      size_t aux_prefix_size = strlen(aux_prefix);
-      char *aux = malloc(data_size + aux_prefix_size + 1);
-      memset(aux, 0, data_size + aux_prefix_size + 1);
-      snprintf(aux, data_size + aux_prefix_size + 1,
+      size_t aux_prefix_size = strlen(aux_prefix) + END_OF_STRING;
+      char *aux = malloc(data_size + aux_prefix_size);
+      memset(aux, 0, data_size + aux_prefix_size );
+      snprintf(aux, data_size + aux_prefix_size,
                 aux_prefix, (*data->body_data)[i]);
-      *variable_log =
-          realloc(*variable_log, strlen(*variable_log) + strlen(aux) + 1);
-      memcpy(*variable_log + actual_size - 1, aux, strlen(aux) + 1);
-      actual_size += strlen(aux);
+      size_t aux_size = strlen(aux) + END_OF_STRING;
+      *variable_log = realloc(*variable_log, strlen(*variable_log) + aux_size);
+      memcpy(*variable_log + actual_size - 1, aux, aux_size);
+      actual_size += aux_size - END_OF_STRING;
       free(aux);
     }
   }

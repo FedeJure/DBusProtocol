@@ -8,6 +8,9 @@
 #define READ_SIZE_4 4
 #define METHOD_PARAM_TYPE 0x8
 
+/*=================================PUBLIC=====================================*/
+
+
 void dbus_decoder_init(dbus_data_t *self, char ***data, char ***body_data) {
   for (size_t i = 0; i < MAX_PARAMS_COUNT; i++) {
     self->params[i].type = 0x00;
@@ -33,6 +36,27 @@ int dbus_decoder_read_header(dbus_data_t *self, int client_fd) {
   }
   return DBUS_SUCCESS;
 }
+
+int dbus_decoder_read_body(dbus_data_t *self, int client_fd) {
+  char buffer[READ_SIZE_4];
+  int index = 0;
+  while (index < self->signature_count) {
+    if (socket_read(client_fd, buffer, READ_SIZE_4) == SOCKET_ERROR) {
+      return DBUS_ERROR;
+    }
+    int length = (index == (self->signature_count - 1))
+                     ? buffer[0] + END_OF_STRING
+                     : round_up_eigth(buffer[0] + END_OF_STRING);
+    (*self->body_data)[index] = realloc((*self->body_data)[index], length);
+    if (socket_read(client_fd, (*self->body_data)[index], length) ==
+        SOCKET_ERROR) { return DBUS_ERROR; }
+    index++;
+  }
+  return DBUS_SUCCESS;
+}
+
+
+/*=================================PRIVATE===================================*/
 
 int _dbus_decoder_read_header_general_data(dbus_data_t *self, int client_fd) {
   char buffer[HEADER_STATIC_SIZE];
@@ -82,7 +106,7 @@ int _dbus_decoder_read_common_param(dbus_data_t *self,
           _dbus_decoder_read_length_of_stream(client_fd, bytes_readed);
   if (param_length == DBUS_ERROR) { return DBUS_ERROR; }
   _dbus_decoder_read_param_data_of_stream(self, client_fd, index, bytes_readed,
-                                  param_length + 1);
+                                  param_length + END_OF_STRING);
 
  return DBUS_SUCCESS;
 }
@@ -96,14 +120,13 @@ int _dbus_decoder_read_method_param(dbus_data_t *self,
   *bytes_readed += readed;
   self->signature_count = params_count;
   int length_to_read = round_up_eigth(params_count + 6) - 5;
-  char* params_types = malloc(length_to_read + 1);
+  char* params_types = malloc(length_to_read + END_OF_STRING);
   readed = socket_read(client_fd, params_types, length_to_read);
   if (readed == SOCKET_ERROR) { return DBUS_ERROR; }
   *bytes_readed += readed;
   free(params_types);
   return DBUS_SUCCESS;
 }
-
 
 int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self,
                                             int client_fd,
@@ -122,24 +145,6 @@ int _dbus_decoder_read_param_data_of_stream(dbus_data_t *self,
   return DBUS_SUCCESS;
 }
 
-int dbus_decoder_read_body(dbus_data_t *self, int client_fd) {
-  char buffer[READ_SIZE_4];
-  int index = 0;
-  while (index < self->signature_count) {
-    if (socket_read(client_fd, buffer, READ_SIZE_4) == SOCKET_ERROR) {
-      return DBUS_ERROR;
-    }
-    int length = (index == (self->signature_count - 1))
-                     ? buffer[0] + 1
-                     : round_up_eigth(buffer[0] + 1);
-    (*self->body_data)[index] = realloc((*self->body_data)[index], length);
-    if (socket_read(client_fd, (*self->body_data)[index], length) ==
-        SOCKET_ERROR) { return DBUS_ERROR; }
-    index++;
-  }
-  return DBUS_SUCCESS;
-}
-
 int _dbus_decoder_read_length_of_stream(int client_fd, int* bytes_readed) {
   char readed_length[READ_SIZE_4];
   int readed = socket_read(client_fd, readed_length, READ_SIZE_4);
@@ -147,8 +152,3 @@ int _dbus_decoder_read_length_of_stream(int client_fd, int* bytes_readed) {
   *bytes_readed += readed;
   return (__int32_t)readed_length[0];
 }
-
-
-int dbus_decoder_get_param_size() { return 8; }
-
-int dbus_decoder_get_max_params_count() { return MAX_PARAMS_COUNT; }
