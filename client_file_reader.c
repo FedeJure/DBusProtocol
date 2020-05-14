@@ -39,14 +39,11 @@ void reader_next_buffer_until_space(reader_t* self,
         if (readed == ',') {
             open_comma = true;
         }
-        if (readed == ' ' && open_comma == true) {
-            continue;
-        }
         if (readed == EOF) {
             self->reading = false;
             keep_reading = false;
         }
-        if (readed == '\n' || readed == ' ') {
+        if (readed == '\n' || (readed == ' ' && (open_comma == false))) {
             keep_reading = false;
             continue;
         }
