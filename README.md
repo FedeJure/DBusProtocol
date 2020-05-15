@@ -5,8 +5,6 @@
 
 <br></br>
 <br></br>
-<br></br>
-<br></br>
 
 
 # <center>Trabajo práctico 1 - Protocolo DBus</center>
