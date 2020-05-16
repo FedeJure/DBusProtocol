@@ -40,18 +40,19 @@ void _dbus_encoder_build_stream(char** stream,
                                 const __uint32_t params_count,
                                 size_t header_size,
                                 __uint32_t id);
-int _dbus_encoder_get_body_length_no_padding_on_last(char*** params, const __uint32_t count);
+int _dbus_encoder_get_body_length_no_padding_on_last(char*** params,
+                                                    const __uint32_t count);
 int _dbus_encoder_get_header_length_no_padding_on_last(char*** params,
-                                                        const __uint32_t count,
-                                                        const __uint32_t signature_count);
+                                        const __uint32_t count,
+                                        const __uint32_t signature_count);
 void _dbus_encoder_build_static_header(char** stream_pointer,
                                         char*** signature,
                                         const __uint32_t method_params_count,
                                         __uint32_t id);
 void _dbus_encoder_build_variable_header(char** stream_pointer,
-                                        char*** params,
-                                        const __uint32_t params_count,
-                                        const __uint32_t variable_header_length);
+                                    char*** params,
+                                    const __uint32_t params_count,
+                                    const __uint32_t variable_header_length);
 void _dbus_encoder_build_body(char** stream_pointer,
                                 char** signature,
                                 const __uint32_t signature_count);

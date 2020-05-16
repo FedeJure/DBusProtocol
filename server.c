@@ -64,7 +64,8 @@ int _server_command_receive(server_t *self, int client_fd) {
   _print_log(&data);
 
   char *response = "OK";
-  if (socket_send(client_fd, response, strlen(response) + END_OF_STRING) == SOCKET_ERROR) {
+  if (socket_send(client_fd, response, strlen(response) + END_OF_STRING)
+                                            == SOCKET_ERROR) {
     _server_release(params_data, MAX_PARAMS_COUNT, body_data,
                       data.signature_count);
     return SERVER_ERROR;
@@ -129,7 +130,7 @@ void _write_variable_log(char **variable_log, dbus_data_t *data) {
       size_t data_size = strlen((*data->body_data)[i]);
       size_t aux_prefix_size = strlen(aux_prefix) + END_OF_STRING;
       char *aux = malloc(data_size + aux_prefix_size);
-      memset(aux, 0, data_size + aux_prefix_size );
+      memset(aux, 0, data_size + aux_prefix_size);
       snprintf(aux, data_size + aux_prefix_size,
                 aux_prefix, (*data->body_data)[i]);
       size_t aux_size = strlen(aux) + END_OF_STRING;
