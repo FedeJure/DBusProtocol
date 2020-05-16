@@ -71,3 +71,8 @@ __Servidor:__ El servidor estára funcionando en un determinado puerto esperando
     > Inicia un __socket__ en modo de servidor y queda a la espera de la conexion de un __client__; una vez establecida, lee y procesa los bytes recibidos utilizando el __server_dbus_decoder__. Al finalizar la lectura de cada instruccion enviada por el __client__ imprime por __stdout__ una representacion de lo que sería la ejecucion de dicha instrucción.
 * server_dbus_decoder
     > Dado un stream de bytes, extrae de él toda la informacion necesaria respetando el protocolo, y la almacena en un DTO __dbus_t__ el cual mantiene una estructura ordenada y de facil acceso para usar con el mensaje recibido.
+
+---------------
+En el siguiente diagrama se puede ver a grandes razgos las dependencias de los modelos de del dominio.
+
+<img src="diagrama_dependencias.PNG"/>

@@ -2,3 +2,4 @@
 cpplint.py
 client
 server
+.vscode/*
