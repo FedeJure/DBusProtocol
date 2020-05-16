@@ -3,7 +3,7 @@
 #define SERVER_H_
 
 #include "./common_socket.h"
-#include "./common_dbus_decoder.h"
+#include "./server_dbus_decoder.h"
 typedef struct {
     socket_t* socket;
 } server_t;

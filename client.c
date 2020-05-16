@@ -8,7 +8,7 @@
 #include "./client_file_reader.h"
 #include "./common_socket.h"
 #include "./common_utils.h"
-#include "./common_dbus_encoder.h"
+#include "./client_dbus_encoder.h"
 
 #define ERROR 1
 #define SUCCESS 0

@@ -1,6 +1,6 @@
 // Copyright [2020] <Federico Jure>
-#ifndef COMMON_DBUS_ENCODER_H_
-#define COMMON_DBUS_ENCODER_H_
+#ifndef client_dbus_encoder_H_
+#define client_dbus_encoder_H_
 
 #include <stdio.h>
 #define DBUS_ERROR -1
@@ -68,4 +68,4 @@ void _dbus_encoder_read_until_separator(char** destination,
                                         char* delim);
 void _dbus_encoder_save_length(char** stream_pointer, __uint32_t num);
 
-#endif  // COMMON_DBUS_ENCODER_H_
+#endif  // client_dbus_encoder_H_

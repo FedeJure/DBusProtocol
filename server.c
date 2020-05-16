@@ -6,7 +6,7 @@
 #include <string.h>
 #include <strings.h>
 #include "./server.h"
-#include "./common_dbus_decoder.h"
+#include "./server_dbus_decoder.h"
 #include "./common_utils.h"
 
 #define SERVER_ERROR 1
