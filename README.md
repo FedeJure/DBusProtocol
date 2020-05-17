@@ -76,3 +76,7 @@ __Servidor:__ El servidor estára funcionando en un determinado puerto esperando
 En el siguiente diagrama se puede ver a grandes razgos las dependencias de los modelos de del dominio.
 
 <img src="diagrama_dependencias.PNG"/>
+
+<img src="secuencia_cliente.png"/>
+
+---------------
