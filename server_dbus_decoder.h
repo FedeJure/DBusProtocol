@@ -31,8 +31,15 @@ typedef struct dbus {
 
 
 /*=================================PUBLIC=====================================*/
-
+/*
+Recbie una referencia al objeto dbus y el file descriptor del cliente conectado
+y guarda en self los datos del header recibidos del cliente.
+*/
 int dbus_decoder_read_header(dbus_data_t* self, int client_fd);
+/*
+Recbie una referencia al objeto dbus y el file descriptor del cliente conectado
+y guarda en self los datos del body recibidos del cliente.
+*/
 int dbus_decoder_read_body(dbus_data_t* self, int client_fd);
 
 /*=================================PRIVATE====================================*/

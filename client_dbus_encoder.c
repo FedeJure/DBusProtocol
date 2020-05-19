@@ -161,13 +161,13 @@ int _dbus_encoder_build_body_header(char **stream_pointer,
   return DBUS_SUCCESS;
 }
 
-int _dbus_encoder_get_body_length_no_padding_on_last(char ***signature,
+int _dbus_encoder_get_body_length_no_padding_on_last(char **signature,
                                                     const __uint32_t count) {
   size_t length = 0;
   if (count == 0) return length;
   for (size_t i = 0; i < count; i++) {
     length += sizeof(__uint32_t);
-    char* param = (*signature)[i];
+    char* param = signature[i];
     size_t param_size = strlen(param) + END_OF_STRING;
     int is_last_param = i == count - 1;
     length += is_last_param ?

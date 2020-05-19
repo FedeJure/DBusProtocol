@@ -51,7 +51,3 @@ void reader_next_buffer_until_space(reader_t* self,
         index++;
     }
 }
-
-bool _reader_stop_reading_line_condition(char c) {
-    return c == '\n';
-}
