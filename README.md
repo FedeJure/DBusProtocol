@@ -78,5 +78,6 @@ En el siguiente diagrama se puede ver a grandes razgos las dependencias de los m
 <img src="diagrama_dependencias.PNG"/>
 
 <img src="secuencia_cliente.png"/>
+<img src="diagrama_server.jpeg"/>
 
 ---------------
