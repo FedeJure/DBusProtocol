@@ -73,7 +73,7 @@ Se compone por los siguientes datos y en orden:
 2do entero: un número serie para identificar el mensaje
 */
 void _dbus_encoder_build_static_header(char** stream_pointer,
-                                        char*** signature,
+                                        char** signature,
                                         const __uint32_t method_params_count,
                                         __uint32_t id);
 /*

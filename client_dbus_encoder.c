@@ -54,7 +54,7 @@ void _dbus_encoder_calculate_sizes(size_t* static_size,
       params, params_count, signature_count);
   *stream_size = *static_size +
                        _dbus_encoder_get_body_length_no_padding_on_last(
-                           &signature, signature_count) +
+                           signature, signature_count) +
                        round_up_eigth(*header_size);
 }
 
@@ -70,7 +70,7 @@ void _dbus_encoder_build_stream(char** stream,
   char* stream_pointer = *stream;
   memset(*stream, 0, stream_size);
 
-  _dbus_encoder_build_static_header(&stream_pointer, &signature,
+  _dbus_encoder_build_static_header(&stream_pointer, signature,
                             signature_count, id);
   _dbus_encoder_build_variable_header(&stream_pointer, params,
                               params_count, header_size);
@@ -81,7 +81,7 @@ void _dbus_encoder_build_stream(char** stream,
 }
 
 void _dbus_encoder_build_static_header(char** stream_pointer,
-                                      char*** signature,
+                                      char** signature,
                                       const __uint32_t signature_count,
                                       __uint32_t id) {
   *((*stream_pointer)++) = 'l';
