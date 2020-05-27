@@ -29,14 +29,15 @@ int start_server(char *service) {
   }
   int client_fd;
   socket_accept(self.socket, &client_fd, self.socket->service);
-
-  while (client_fd > 0) {
+  bool keep_receive_commands = true;
+  while (keep_receive_commands == true) {
     if (_server_command_receive(&self, client_fd) == SERVER_ERROR) {
-      client_fd = 0;
+      keep_receive_commands = false;
     }
   }
 
-  socket_release(&socket);
+  socket_release(&client_fd);
+  socket_release(&socket.fd);
 
   return SERVER_SUCCESS;
 }

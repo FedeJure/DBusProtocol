@@ -27,7 +27,7 @@ int start_client(char* address, char* service, FILE* entry_file) {
         return ERROR;
     }
     _process_file(&socket, entry_file);
-    socket_release(&socket);
+    socket_release(&socket.fd);
     return SUCCESS;
 }
 

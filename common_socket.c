@@ -25,10 +25,10 @@ int socket_init(socket_t* self) {
     return SOCKET_SUCCESS;
 }
 
-int socket_release(socket_t* self) {
-    shutdown(self->fd, SHUT_RDWR);
-    close(self->fd);
-    self->fd = -1;
+int socket_release(int* fd) {
+    shutdown(*fd, SHUT_RDWR);
+    close(*fd);
+    *fd = -1;
     return SOCKET_SUCCESS;
 }
 

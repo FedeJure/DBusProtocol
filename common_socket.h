@@ -12,7 +12,7 @@ typedef struct socket {
 } socket_t;
 
 int socket_init(socket_t* self);
-int socket_release(socket_t* self);
+int socket_release(int* fd);
 /*
 Recibe la referencia al socket, address y service al cual conectarse.
 Intenta establecer una conexion y en caso negativo retorna codigo de
