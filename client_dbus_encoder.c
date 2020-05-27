@@ -182,7 +182,11 @@ int _dbus_encoder_get_header_length_no_padding_on_last(char ***params,
                                           const __uint32_t signature_count) {
   size_t length = 0;
   for (size_t i = 0; i < count; i++) {
-    size_t length_and_data = 5 + sizeof(__uint32_t) + strlen((*params)[i]);
+    size_t length_size = sizeof(__uint32_t);
+    size_t options_size = 4; // 3 byte options + \0
+    size_t length_and_data = options_size +
+                              length_size +
+                              strlen((*params)[i]) + END_OF_STRING;
     int is_last_param = ((i == count - 1) && (signature_count == 0));
     length += is_last_param
                 ? length_and_data
