@@ -98,10 +98,14 @@ void _dbus_encoder_get_signature_method(char*** buffer,
                                         char*** signature,
                                         const __uint32_t params_count);
 int _dbus_encoder_get_method_params_count(char* method, size_t length);
-void _dbus_encoder_read_until_separator(char** destination,
-                                        char** pointer,
-                                        char** rest,
-                                        char* delim);
+void _dbus_encoder_read_method_name(char **destination,
+                                        char **pointer,
+                                        char **rest,
+                                        char *delim);
+void _dbus_encoder_read_signature_param(char **destination,
+                                        char **pointer,
+                                        char **rest,
+                                        char *delim);
 void _dbus_encoder_save_length(char** stream_pointer, __uint32_t num);
 
 #endif  // client_dbus_encoder_H_

@@ -7,6 +7,7 @@
 
 #define METHOD_PARAM_TYPE 0x8
 #define PARAM_HEADER_SIZE 4
+#define MAX_METHOD_NAME_SIZE 100
 
 /*=================================PUBLIC=====================================*/
 
@@ -20,8 +21,9 @@ size_t dbus_encoder_build_stream(char **stream,
   char **signature = malloc(signature_count * sizeof(char *));
   for (size_t i = 0; i < signature_count; i++) { signature[i] = malloc(1); }
 
-  char *method_name = malloc(1);
-  _dbus_encoder_get_signature_method(params, &method_name, &signature,
+  char method_name[MAX_METHOD_NAME_SIZE];
+  char* method_name_pointer = method_name;
+  _dbus_encoder_get_signature_method(params, &method_name_pointer, &signature,
                 signature_count);
 
   size_t static_size, header_size, stream_size;
@@ -35,7 +37,6 @@ size_t dbus_encoder_build_stream(char **stream,
     free(signature[i]);
   }
   free(signature);
-  free(method_name);
   return stream_size;
 }
 
@@ -211,14 +212,14 @@ void _dbus_encoder_get_signature_method(char ***buffer,
                                         const __uint32_t params_count) {
   char *rest = (*buffer)[3];
   char *actual;
-  _dbus_encoder_read_until_separator(method_name, &actual, &rest, "(");
+  _dbus_encoder_read_method_name(method_name, &actual, &rest, "(");
   if (params_count == 0) return;
   char **param;
   for (size_t i = 0; i < params_count; i++) {
     param = &((*signature)[i]);
     int is_last_param = i == params_count - 1;
     char* separator = is_last_param ? ")" : ",";
-    _dbus_encoder_read_until_separator(param, &actual, &rest, separator);
+    _dbus_encoder_read_signature_param(param, &actual, &rest, separator);
   }
 }
 
@@ -231,7 +232,18 @@ int _dbus_encoder_get_method_params_count(char* method, const size_t length) {
   return comma_count + 1;
 }
 
-void _dbus_encoder_read_until_separator(char **destination,
+void _dbus_encoder_read_method_name(char **destination,
+                                        char **pointer,
+                                        char **rest,
+                                        char *delim) {
+  *pointer = __strtok_r(*rest, delim, rest);
+  size_t size = *rest - *pointer;
+  memset(*destination, 0, size);
+  memcpy(*destination, *pointer, size);
+  *pointer += size;
+}
+
+void _dbus_encoder_read_signature_param(char **destination,
                                         char **pointer,
                                         char **rest,
                                         char *delim) {
