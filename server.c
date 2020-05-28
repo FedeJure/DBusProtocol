@@ -9,8 +9,6 @@
 #include "./server_dbus_decoder.h"
 #include "./common_utils.h"
 
-#define SERVER_ERROR 1
-#define SERVER_SUCCESS 0
 #define BUFFER_SIZE 32
 
 /*=================================PUBLIC=====================================*/

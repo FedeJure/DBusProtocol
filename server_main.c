@@ -16,7 +16,13 @@ int main(int argc, char* argv[]) {
     _check_params(argc, argv);
     char* service;
     _extract_params(argc, argv, &service);
-    return _start_server(service);
+    if (_start_server(service) == SERVER_ERROR) {
+        return ERROR;
+    }
+    fclose(stdin);
+    fclose(stdout);
+    fclose(stderr);
+    return SUCCESS;
 }
 
 void _check_params(int argc, char* argv[]) {

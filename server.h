@@ -4,6 +4,10 @@
 
 #include "./common_socket.h"
 #include "./server_dbus_decoder.h"
+
+#define SERVER_ERROR 1
+#define SERVER_SUCCESS 0
+
 typedef struct {
     socket_t* socket;
 } server_t;
