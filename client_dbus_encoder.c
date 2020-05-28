@@ -89,9 +89,9 @@ void _dbus_encoder_build_static_header(char** stream_pointer,
   *((*stream_pointer)++) = 0x0;
   *((*stream_pointer)++) = 0x01;
   _dbus_encoder_save_length(stream_pointer,
-                    betole(_dbus_encoder_get_body_length_no_padding_on_last(
+      force_little_endian(_dbus_encoder_get_body_length_no_padding_on_last(
                         signature, signature_count)));
-  _dbus_encoder_save_length(stream_pointer, betole(id));
+  _dbus_encoder_save_length(stream_pointer, force_little_endian(id));
 }
 
 void _dbus_encoder_save_length(char **stream_pointer,
@@ -109,7 +109,8 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
                                 char*** params,
                                 const __uint32_t params_count,
                                 const __uint32_t variable_header_length) {
-  _dbus_encoder_save_length(stream_pointer, betole(variable_header_length));
+  _dbus_encoder_save_length(stream_pointer,
+                      force_little_endian(variable_header_length));
   char params_types[PARAM_HEADER_SIZE] = {0x6, 0x1, 0x2, 0x3};
   char params_data_types[PARAM_HEADER_SIZE] = {'s', 'o', 's', 's'};
   int order_mapping[PARAM_HEADER_SIZE] = {1, 0, 2, 3};
@@ -121,7 +122,7 @@ void _dbus_encoder_build_variable_header(char** stream_pointer,
     *((*stream_pointer)++) = params_data_types[index];
     *stream_pointer += 1;
     _dbus_encoder_save_length(stream_pointer,
-                      betole(strlen(param)));
+                      force_little_endian(strlen(param)));
     size_t param_size = strlen(param) + END_OF_STRING;
     memcpy(*stream_pointer, param, param_size);
     *stream_pointer += round_up_eigth(param_size);
@@ -135,7 +136,8 @@ void _dbus_encoder_build_body(char** stream_pointer,
   for (size_t i = 0; i < signature_count; i++) {
     size_t signature_length = strlen((*signature));
     size_t signature_size = signature_length + END_OF_STRING;
-    _dbus_encoder_save_length(stream_pointer, betole(signature_length));
+    _dbus_encoder_save_length(stream_pointer,
+                        force_little_endian(signature_length));
     memcpy(*stream_pointer, *signature, signature_size);
     int is_last_param = i == signature_count - 1;
     *stream_pointer += is_last_param
