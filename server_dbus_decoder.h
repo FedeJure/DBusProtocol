@@ -19,10 +19,10 @@ typedef struct dbus {
     char endianess;
     int type;
     int flag;
-    unsigned int version;
-    unsigned int body_length;
-    unsigned int id;
-    unsigned int array_length;
+    __uint32_t version;
+    __uint32_t body_length;
+    __uint32_t id;
+    __uint32_t array_length;
     dbus_params_t params[MAX_PARAMS_COUNT];
     char*** params_data;
     char*** body_data;
