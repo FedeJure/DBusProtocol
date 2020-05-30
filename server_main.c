@@ -19,9 +19,6 @@ int main(int argc, char* argv[]) {
     if (_start_server(service) == SERVER_ERROR) {
         return ERROR;
     }
-    fclose(stdin);
-    fclose(stdout);
-    fclose(stderr);
     return SUCCESS;
 }
 
